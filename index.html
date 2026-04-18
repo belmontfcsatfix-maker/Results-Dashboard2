@@ -529,6 +529,7 @@ function updateDropdowns() {
 
 function rebuildSelect(id, key, options, currentVal, label) {
   const sel = document.getElementById(id);
+  if (!sel) return;
   sel.innerHTML = `<option value="all">${label}</option>`;
   options.forEach(v => {
     const o = new Option(v, v);
