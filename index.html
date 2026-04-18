@@ -279,12 +279,12 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
       </div>
     </div>
 
-    <!-- Box 4: Date & Opponent -->
+    <!-- Box 4: Date + Rival -->
     <div class="fbox">
-      <div class="fbox-title">Date &amp; Opponent</div>
+      <div class="fbox-title">Date &amp; Rival</div>
       <div class="fbox-body">
         <select id="dateSel" onchange="setDropdown('date',this.value)"></select>
-        <select id="oppSel" onchange="setDropdown('opp',this.value)"></select>
+        <select id="rivalSel" onchange="setDropdown('rival',this.value)"></select>
       </div>
     </div>
 
@@ -328,6 +328,14 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 </div>
 
 <script>
+// ── Global stubs (onclick handlers need these to exist at HTML-parse time) ──
+function toggleBtn(btn)         { if(window._toggleBtn) window._toggleBtn(btn); }
+function setDropdown(key, val)  { if(window._setDropdown) window._setDropdown(key, val); }
+function sortBy(col)            { if(window._sortBy) window._sortBy(col); }
+function resetAll()             { if(window._resetAll) window._resetAll(); }
+function selectOnlySt(val)      { if(window._selectOnlySt) window._selectOnlySt(val); }
+function switchTab(tab, btn)    { if(window._switchTab) window._switchTab(tab, btn); }
+
 // ── CSV loader ──────────────────────────────────────────────────────────────
 // Reads data from belmont_ddsl_data.csv in the same directory as this file.
 // The CSV must have these columns (in any order):
@@ -386,14 +394,6 @@ async function loadData() {
 loadData();
 
 
-
-// ── Global state (populated by initDashboard after CSV loads) ──
-let ALL = [];
-let filters = {};
-let sortCol = 'date_sort', sortAsc = false;
-let ALL_ST = ['win','draw','loss','nr','np'];
-
-// ── Wrap setup code back into initDashboard() ──
 function initDashboard() {
 function getDiv(r) {
   const m = String(r).match(/^(\d+(?:\.\d+(?:\/\d+)*)?)/);
@@ -404,7 +404,7 @@ function getAge(r) {
   return m ? 'U' + m[1] : 'Other';
 }
 
-ALL = DATA.map(g => {
+const ALL = DATA.map(g => {
   const bh = /belmont/i.test(g.home);
   const isNP = g.played === 'N';
   const hasScore = g.h_goals !== null && g.h_goals !== undefined;
@@ -426,17 +426,18 @@ ALL = DATA.map(g => {
 // st: Set of active result types (multiselect — all active = show all)
 // tp: single value
 // date/age/div: single value
-filters = {
+let filters = {
   ha: 'all',
   st: new Set(['win','draw','loss','nr','np']),  // all on = show all
   tp: 'all',
   date: 'all',
   age: 'all',
   div: 'all',
-  opp: 'all'
+  rival: 'all'
 };
-sortCol = 'date_sort'; sortAsc = false;
+let sortCol = 'date_sort', sortAsc = false;
 
+const ALL_ST = ['win','draw','loss','nr','np'];
 
 function matchGame(g) {
   if (filters.ha === 'home' && !g.is_home) return false;
@@ -447,7 +448,10 @@ function matchGame(g) {
   if (filters.age !== 'all' && g.age !== filters.age) return false;
   if (filters.div !== 'all' && g.division !== filters.div) return false;
   if (filters.date !== 'all' && g.date !== filters.date) return false;
-  if (filters.opp !== 'all') { const op = g.is_home ? g.away : g.home; if (op !== filters.opp) return false; }
+  if (filters.rival !== 'all') {
+    const opp = g.is_home ? g.away : g.home;
+    if (opp !== filters.rival) return false;
+  }
   return true;
 }
 
@@ -460,7 +464,7 @@ function poolExcluding(key) {
     if (key !== 'age')  { if (filters.age !== 'all' && g.age !== filters.age) return false; }
     if (key !== 'div')  { if (filters.div !== 'all' && g.division !== filters.div) return false; }
     if (key !== 'date') { if (filters.date !== 'all' && g.date !== filters.date) return false; }
-    if (key !== 'opp') { if (filters.opp !== 'all') { const op = g.is_home ? g.away : g.home; if (op !== filters.opp) return false; } }
+    if (key !== 'rival') { if (filters.rival !== 'all') { const opp2 = g.is_home ? g.away : g.home; if (opp2 !== filters.rival) return false; } }
     return true;
   });
 }
@@ -476,7 +480,7 @@ function applyFilters() {
   updateDropdowns();
   updateActiveCount();
   const isFiltered = filters.ha!=='all' || filters.st.size<ALL_ST.length ||
-    filters.tp!=='all' || filters.date!=='all' || filters.age!=='all' || filters.div!=='all' || filters.opp!=='all';
+    filters.tp!=='all' || filters.date!=='all' || filters.age!=='all' || filters.div!=='all' || filters.rival!=='all';
   document.getElementById('rcount').innerHTML = isFiltered
     ? `Showing <span>${filtered.length}</span> of ${ALL.length} matches`
     : `<span>${ALL.length}</span> matches total`;
@@ -516,10 +520,6 @@ function updateDropdowns() {
       }),
     filters.date, 'Date');
 
-  rebuildSelect('oppSel', 'opp',
-    [...new Set(poolExcluding('opp').map(g => g.is_home ? g.away : g.home))].sort(),
-    filters.opp, 'Opponent');
-
   const agePool = poolExcluding('age');
   rebuildSelect('ageSel', 'age',
     [...new Set(agePool.map(g=>g.age))].sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1))),
@@ -529,11 +529,14 @@ function updateDropdowns() {
   rebuildSelect('divSel', 'div',
     [...new Set(divPool.map(g=>g.division))].sort((a,b)=>parseFloat(a)-parseFloat(b)),
     filters.div, 'Division');
+
+  const rivalPool = poolExcluding('rival');
+  const rivals = [...new Set(rivalPool.map(g => g.is_home ? g.away : g.home))].sort((a,b)=>a.localeCompare(b));
+  rebuildSelect('rivalSel', 'rival', rivals, filters.rival, 'Rival');
 }
 
 function rebuildSelect(id, key, options, currentVal, label) {
   const sel = document.getElementById(id);
-  if (!sel) return;
   sel.innerHTML = `<option value="all">${label}</option>`;
   options.forEach(v => {
     const o = new Option(v, v);
@@ -554,9 +557,9 @@ function updateActiveCount() {
   if (filters.st.size < ALL_ST.length) count++;
   if (filters.tp !== 'all') count++;
   if (filters.date !== 'all') count++;
-  if (filters.opp !== 'all') count++;
   if (filters.age !== 'all') count++;
   if (filters.div !== 'all') count++;
+  if (filters.rival !== 'all') count++;
   const el = document.getElementById('activeCount');
   el.textContent = count > 0 ? `${count} filter${count>1?'s':''} active` : '';
 }
@@ -580,7 +583,6 @@ function renderStats(filtered) {
     if (filters.age !== 'all' && g.age !== filters.age) return false;
     if (filters.div !== 'all' && g.division !== filters.div) return false;
     if (filters.date !== 'all' && g.date !== filters.date) return false;
-    if (filters.opp !== 'all') { const op = g.is_home ? g.away : g.home; if (op !== filters.opp) return false; }
     return true;
   });
   const total = pool.length;
@@ -695,17 +697,23 @@ function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 function sortBy(col) { sortAsc = sortCol===col ? !sortAsc : true; sortCol=col; applyFilters(); }
 
 function resetAll() {
-  filters = { ha:'all', st:new Set(ALL_ST), tp:'all', date:'all', age:'all', div:'all', opp:'all' };
+  filters = { ha:'all', st:new Set(ALL_ST), tp:'all', date:'all', age:'all', div:'all', rival:'all' };
   sortCol = 'date_sort'; sortAsc = false;
   document.querySelectorAll('[data-key="ha"]').forEach(b => b.classList.toggle('active', b.dataset.val==='all'));
   document.querySelectorAll('[data-key="tp"]').forEach(b => b.classList.toggle('active', b.dataset.val==='all'));
   applyFilters();
 }
 
+// Register all event-handler functions as global so onclick="" attributes work
+window._toggleBtn    = toggleBtn;
+window._setDropdown  = setDropdown;
+window._sortBy       = sortBy;
+window._resetAll     = resetAll;
+window._selectOnlySt = selectOnlySt;
+window._switchTab    = switchTab;
+
 // Initial render
 applyFilters();
-}
-
 
 /* ════════════════════════════════
    TAB SWITCHING
@@ -1041,6 +1049,8 @@ function buildCard(title, sub, headers, rows, headerAligns) {
   </div>`;
 }
 
+
+}
 </script>
 
 </div>
