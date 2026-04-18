@@ -279,11 +279,12 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
       </div>
     </div>
 
-    <!-- Box 4: Date -->
+    <!-- Box 4: Date & Opponent -->
     <div class="fbox">
-      <div class="fbox-title">Date</div>
+      <div class="fbox-title">Date &amp; Opponent</div>
       <div class="fbox-body">
         <select id="dateSel" onchange="setDropdown('date',this.value)"></select>
+        <select id="oppSel" onchange="setDropdown('opp',this.value)"></select>
       </div>
     </div>
 
@@ -423,7 +424,8 @@ let filters = {
   tp: 'all',
   date: 'all',
   age: 'all',
-  div: 'all'
+  div: 'all',
+  opp: 'all'
 };
 let sortCol = 'date_sort', sortAsc = false;
 
@@ -438,6 +440,10 @@ function matchGame(g) {
   if (filters.age !== 'all' && g.age !== filters.age) return false;
   if (filters.div !== 'all' && g.division !== filters.div) return false;
   if (filters.date !== 'all' && g.date !== filters.date) return false;
+  if (filters.opp !== 'all') {
+    const opponent = g.is_home ? g.away : g.home;
+    if (opponent !== filters.opp) return false;
+  }
   return true;
 }
 
@@ -450,6 +456,7 @@ function poolExcluding(key) {
     if (key !== 'age')  { if (filters.age !== 'all' && g.age !== filters.age) return false; }
     if (key !== 'div')  { if (filters.div !== 'all' && g.division !== filters.div) return false; }
     if (key !== 'date') { if (filters.date !== 'all' && g.date !== filters.date) return false; }
+    if (key !== 'opp')  { if (filters.opp !== 'all') { const opponent = g.is_home ? g.away : g.home; if (opponent !== filters.opp) return false; } }
     return true;
   });
 }
@@ -465,7 +472,7 @@ function applyFilters() {
   updateDropdowns();
   updateActiveCount();
   const isFiltered = filters.ha!=='all' || filters.st.size<ALL_ST.length ||
-    filters.tp!=='all' || filters.date!=='all' || filters.age!=='all' || filters.div!=='all';
+    filters.tp!=='all' || filters.date!=='all' || filters.age!=='all' || filters.div!=='all' || filters.opp!=='all';
   document.getElementById('rcount').innerHTML = isFiltered
     ? `Showing <span>${filtered.length}</span> of ${ALL.length} matches`
     : `<span>${ALL.length}</span> matches total`;
@@ -505,6 +512,10 @@ function updateDropdowns() {
       }),
     filters.date, 'Date');
 
+  rebuildSelect('oppSel', 'opp',
+    [...new Set(poolExcluding('opp').map(g => g.is_home ? g.away : g.home))].sort(),
+    filters.opp, 'Opponent');
+
   const agePool = poolExcluding('age');
   rebuildSelect('ageSel', 'age',
     [...new Set(agePool.map(g=>g.age))].sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1))),
@@ -538,6 +549,7 @@ function updateActiveCount() {
   if (filters.st.size < ALL_ST.length) count++;
   if (filters.tp !== 'all') count++;
   if (filters.date !== 'all') count++;
+  if (filters.opp !== 'all') count++;
   if (filters.age !== 'all') count++;
   if (filters.div !== 'all') count++;
   const el = document.getElementById('activeCount');
@@ -563,6 +575,7 @@ function renderStats(filtered) {
     if (filters.age !== 'all' && g.age !== filters.age) return false;
     if (filters.div !== 'all' && g.division !== filters.div) return false;
     if (filters.date !== 'all' && g.date !== filters.date) return false;
+    if (filters.opp !== 'all') { const opponent = g.is_home ? g.away : g.home; if (opponent !== filters.opp) return false; }
     return true;
   });
   const total = pool.length;
@@ -677,7 +690,7 @@ function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 function sortBy(col) { sortAsc = sortCol===col ? !sortAsc : true; sortCol=col; applyFilters(); }
 
 function resetAll() {
-  filters = { ha:'all', st:new Set(ALL_ST), tp:'all', date:'all', age:'all', div:'all' };
+  filters = { ha:'all', st:new Set(ALL_ST), tp:'all', date:'all', age:'all', div:'all', opp:'all' };
   sortCol = 'date_sort'; sortAsc = false;
   document.querySelectorAll('[data-key="ha"]').forEach(b => b.classList.toggle('active', b.dataset.val==='all'));
   document.querySelectorAll('[data-key="tp"]').forEach(b => b.classList.toggle('active', b.dataset.val==='all'));
