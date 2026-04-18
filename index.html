@@ -427,13 +427,9 @@ const ALL = DATA.map(g => {
 (function() {
   const played = ALL.filter(g => g.result_type === 'win' || g.result_type === 'draw' || g.result_type === 'loss');
   if (played.length) {
-    const latest = played.reduce((best, g) => (g.date_sort > best.date_sort ? g : best), played[0]);
-    // Format date_sort (YYYY-MM-DD) as "D Mon YYYY"
-    const d = new Date(latest.date_sort + 'T00:00:00');
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const label = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    const latest = played.reduce((best, g) => ((g.date_sort || '') > (best.date_sort || '') ? g : best), played[0]);
     const el = document.getElementById('lastUpdated');
-    if (el) el.textContent = label;
+    if (el) el.textContent = latest.date || latest.date_sort || '—';
   }
 })();
 
