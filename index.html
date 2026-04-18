@@ -329,12 +329,14 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 
 <script>
 // ── Global stubs (onclick handlers need these to exist at HTML-parse time) ──
-function toggleBtn(btn)         { if(window._toggleBtn) window._toggleBtn(btn); }
-function setDropdown(key, val)  { if(window._setDropdown) window._setDropdown(key, val); }
-function sortBy(col)            { if(window._sortBy) window._sortBy(col); }
-function resetAll()             { if(window._resetAll) window._resetAll(); }
-function selectOnlySt(val)      { if(window._selectOnlySt) window._selectOnlySt(val); }
-function switchTab(tab, btn)    { if(window._switchTab) window._switchTab(tab, btn); }
+function toggleBtn(btn)              { if(window._toggleBtn) window._toggleBtn(btn); }
+function setDropdown(key, val)       { if(window._setDropdown) window._setDropdown(key, val); }
+function sortBy(col)                 { if(window._sortBy) window._sortBy(col); }
+function resetAll()                  { if(window._resetAll) window._resetAll(); }
+function selectOnlySt(val)           { if(window._selectOnlySt) window._selectOnlySt(val); }
+function switchTab(tab, btn)         { if(window._switchTab) window._switchTab(tab, btn); }
+function insFilterChange(key, val)   { if(window._insFilterChange) window._insFilterChange(key, val); }
+function resetInsights()             { if(window._resetInsights) window._resetInsights(); }
 
 // ── CSV loader ──────────────────────────────────────────────────────────────
 // Reads data from belmont_ddsl_data.csv in the same directory as this file.
@@ -705,12 +707,14 @@ function resetAll() {
 }
 
 // Register all event-handler functions as global so onclick="" attributes work
-window._toggleBtn    = toggleBtn;
-window._setDropdown  = setDropdown;
-window._sortBy       = sortBy;
-window._resetAll     = resetAll;
-window._selectOnlySt = selectOnlySt;
-window._switchTab    = switchTab;
+window._toggleBtn       = toggleBtn;
+window._setDropdown     = setDropdown;
+window._sortBy          = sortBy;
+window._resetAll        = resetAll;
+window._selectOnlySt    = selectOnlySt;
+window._switchTab       = switchTab;
+window._insFilterChange = insFilterChange;
+window._resetInsights   = resetInsights;
 
 // Initial render
 applyFilters();
