@@ -380,7 +380,7 @@ function showError(msg) {
 let DATA = [];
 
 async function loadData() {
-  const csvFile = 'belmont_ddsl_data.csv';
+  const csvFile = 'belmont_ddsl_data.csv?v=' + Date.now();
   try {
     const resp = await fetch(csvFile);
     if (!resp.ok) throw new Error(`HTTP ${resp.status} – ${resp.statusText}`);
