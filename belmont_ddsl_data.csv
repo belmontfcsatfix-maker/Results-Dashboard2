@@ -18,7 +18,7 @@ division_raw,home,h_goals,a_goals,away,referee,location,tournament,played,reason
 13.2 Boys Sat,Rathcoole FC,0,1,Belmont FC,Kyle Cranston,Frank Cox Park,League,Y,,20260124,24-Jan
 13.7 Boys Sat,Belmont FC,,,Castleknock Celtic FC,Eoin Cooke,Herbert Park,League,N,Oppostion,20260124,24-Jan
 13.8 Boys Sat,Belmont FC,,,Dalkey United FC,Eoin Cooke,Herbert Park,League,N,Weather,20260124,24-Jan
-8.6 Boys Sat,Belmont FC,,,Greystones United,-,Herbert Park,League,Y,,20260124,24-Jan
+8.6 Boys Sat,Belmont FC,,,Greystones United AFC,-,Herbert Park,League,Y,,20260124,24-Jan
 8.8 Boys Sat,Manortown United FC,,,Belmont FC,-,5 Acres Perrystown,League,N,Oppostion,20260124,24-Jan
 9.5 Boys Sat,Belmont FC,,,Beechwood FC,-,Herbert Park,League,Y,,20260124,24-Jan
 9.9 Boys Sat,Belmont FC,,,Sporting Greystones FC,-,Herbert Park,League,Y,,20260124,24-Jan
@@ -29,7 +29,7 @@ division_raw,home,h_goals,a_goals,away,referee,location,tournament,played,reason
 11.7 Boys Sat,Mount Merrion Youths FC,1,8,Belmont FC,-,Deerpark,League,Y,,20260131,31-Jan
 11.9 Boys Sat,Belmont FC,4,2,Greystones United AFC,-,Herbert Park,League,Y,,20260131,31-Jan
 12.3 Boys Sat,Belmont FC,0,3,Templeogue United FC,Eoin Cooke,Herbert Park,League,Y,,20260131,31-Jan
-12.6 Boys Sat,Beechwood FC,1,1,Belmont FC,Alex Gallagher,Royal Hospital  Donnybrook,League,Y,,20260131,31-Jan
+12.6 Boys Sat,Beechwood FC,1,1,Belmont FC,Alex Gallagher,"Royal Hospital, Donnybrook",League,Y,,20260131,31-Jan
 12.8 Boys Sat,Belmont FC,,,Sheriff YC,Eoin Cooke,Herbert Park,League,N,Weather,20260131,31-Jan
 13.2 Boys Sat,Corduff FC,,,Belmont FC,Dominic Quigley,Corduff Park,League,N,Oppostion,20260131,31-Jan
 13.7 Boys Sat,Mountview Boys & Girls FC,,,Belmont FC,Andriy Zakhara,Mountview Park,League,N,Weather,20260131,31-Jan
@@ -43,10 +43,10 @@ division_raw,home,h_goals,a_goals,away,referee,location,tournament,played,reason
 10.9 Boys Sat,Belmont FC,,,Lucan United FC,-,Herbert Park,League,N,Oppostion,20260207,07-Feb
 11.6 Boys Sat,Belmont FC,1,1,Tallaght Town AFC,-,Herbert Park,League,Y,,20260207,07-Feb
 11.7 Boys Sat,Belmont FC,10,2,Marks Celtic FC,-,Herbert Park,League,Y,,20260207,07-Feb
-11.9 Boys Sat,Kilnamanagh AFC,0,1,Belmont FC,-,Ned Kelly Park  Kilnamanagh,League,Y,,20260207,07-Feb
+11.9 Boys Sat,Kilnamanagh AFC,0,1,Belmont FC,-,"Ned Kelly Park, Kilnamanagh",League,Y,,20260207,07-Feb
 12.3/4 Boys Saturday Paddy Farry Cup (D3&D4),Sporting Greystones FC,,,Belmont FC,Cían Coughlan,Dr Ryan Park,Cup,N,Weather,20260207,07-Feb
 12.5/6 Boys Saturday Maurice Price Cup (D5&D6),Transport Iveagh Trust FC,,,Belmont FC,Christopher O’Neill,Transport Club,Cup,N,Weather,20260207,07-Feb
-12.8 Boys Sat,Beechwood FC,2,2,Belmont FC,Lucy Gallagher,Royal Hospital  Donnybrook,League,Y,,20260207,07-Feb
+12.8 Boys Sat,Beechwood FC,2,2,Belmont FC,Lucy Gallagher,"Royal Hospital, Donnybrook",League,Y,,20260207,07-Feb
 13.2 Boys Sat,Belmont FC,,,Peamount United FC,James Merriman,Herbert Park,League,N,Weather,20260207,07-Feb
 13.7 Boys Sat,Belmont FC,,,Mulhuddart FC,James Merriman,Herbert Park,League,N,Weather,20260207,07-Feb
 13.8 Boys Sat,Terenure Rangers FC,,,Belmont FC,John Delaney,Bushy Park,League,N,Weather,20260207,07-Feb
@@ -86,10 +86,10 @@ division_raw,home,h_goals,a_goals,away,referee,location,tournament,played,reason
 8.8 Boys Sat,Rosemount Mulvey FC,,,Belmont FC,-,Rosemount Mulvey,League,Y,,20260221,21-Feb
 9.5 Boys Sat,Belmont FC,,,Blessington FC,-,Herbert Park,League,Y,,20260221,21-Feb
 9.9 Boys Sat,Belmont FC,,,Cabinteely FC,-,Herbert Park,League,Y,,20260221,21-Feb
-10.4 Boys Sat,Lucan United FC BLUE Saturday,,,Belmont FC 4 Sat H1,-,Lucan United,League,N,Oppostion,20260228,28-Feb
+10.4 Boys Sat,Lucan United FC,,,Belmont FC 4 Sat H1,-,Lucan United,League,N,Oppostion,20260228,28-Feb
 10.6 Boys Sat,Granada FC,3,1,Belmont FC,-,Meadow Vale,League,Y,,20260228,28-Feb
 10.9 Boys Sat,Belmont FC,4,4,Celbridge Town AFC,-,Herbert Park,League,Y,,20260228,28-Feb
-11.6 Boys Sat,Kilnamanagh AFC,,,Belmont FC,-,Ned Kelly Park  Kilnamanagh,League,N,Oppostion,20260228,28-Feb
+11.6 Boys Sat,Kilnamanagh AFC,,,Belmont FC,-,"Ned Kelly Park, Kilnamanagh",League,N,Oppostion,20260228,28-Feb
 11.7 Boys Sat,Terenure Rangers FC,,,Belmont FC,-,Bushy Park,League,N,Oppostion,20260228,28-Feb
 11.9 Boys Sat,Belmont FC,4,2,Swords Celtic FC,-,Herbert Park,League,Y,,20260228,28-Feb
 12.3 Boys Sat,Belmont FC,5,0,Leixlip United AFC,Bob King,Herbert Park,League,Y,,20260228,28-Feb
@@ -111,7 +111,7 @@ division_raw,home,h_goals,a_goals,away,referee,location,tournament,played,reason
 12.6 Boys Sat,East Wall Bessborough FC,1,2,Belmont FC,James Ajibola,Alfie Byrne Road,League,Y,,20260307,07-Mar
 12.8 Boys Sat,Belmont FC,3,1,Finglas United FC,James Merriman,Herbert Park,League,Y,,20260307,07-Mar
 13.2 Boys Sat,Belmont FC,1,3,Knocklyon United FC,James Merriman,Herbert Park,League,Y,,20260307,07-Mar
-13.7 Boys Sat,Beechwood FC,1,6,Belmont FC,Alex Gallagher,Royal Hospital  Donnybrook,League,Y,,20260307,07-Mar
+13.7 Boys Sat,Beechwood FC,1,6,Belmont FC,Alex Gallagher,"Royal Hospital, Donnybrook",League,Y,,20260307,07-Mar
 13.8 Boys Sat,River Valley Rangers FC,5,3,Belmont FC,Robert Bradley,Rivervalley Park,League,Y,,20260307,07-Mar
 8.6 Boys Sat,Mount Merrion Youths FC,,,Belmont FC,-,Mount Merrion,League,Y,,20260307,07-Mar
 8.8 Boys Sat,Knocklyon United FC,,,Belmont FC,-,Knocklyon United,League,Y,,20260307,07-Mar
@@ -129,11 +129,11 @@ division_raw,home,h_goals,a_goals,away,referee,location,tournament,played,reason
 13.1/2 Boys Gerry Murphy Cup (13.1 & 13.2 Sat),Clontarf FC,,,Belmont FC,Paul Mc Guirk,,Cup,N,Oppostion,20260314,14-Mar
 13.6/7/8 Boys Donie Harmon Cup (13.6,Granada FC,3,2,Belmont FC,Jamie Keating,,Cup,Y,,20260314,14-Mar
 13.7 Boys Sat,Verona FC,2,3,Belmont FC,Kyle Smith,,League,Y,,20260314,14-Mar
-8.6 Friendly,Finglas Utd,,,Belmont FC,-,,League,N,Oppostion,20260314,14-Mar
+8.6 Friendly,Finglas United FC,,,Belmont FC,-,,League,N,Oppostion,20260314,14-Mar
 8.8 Boys Sat,Belmont FC,,,Inchicore Athletic FC,,,League,Y,,20260314,14-Mar
-9.5 Boys Sat,Maynooth,,,Belmont FC,,,League,Y,,20260314,14-Mar
+9.5 Boys Sat,Maynooth Town FC,,,Belmont FC,,,League,Y,,20260314,14-Mar
 9.9 Boys Sat,Belmont FC,,,Sacred Heart FC,,,League,Y,,20260314,14-Mar
-10.4 Boys Sat,St Joseph's AFC,0,0,Belmont FC,-,Pearse Park  Sallynoggin,League,Y,,20260321,21-Mar
+10.4 Boys Sat,St Joseph's AFC,0,0,Belmont FC,-,"Pearse Park, Sallynoggin",League,Y,,20260321,21-Mar
 10.6 Boys Sat,Belmont FC,3,3,Greystones United AFC,-,Herbert Park,League,Y,,20260321,21-Mar
 10.9 Boys Sat,Hartstown / Huntstown FC,3,7,Belmont FC,-,Herbert Park,League,Y,,20260321,21-Mar
 11.6/7 Cup Boys Sat,Home Farm FC,2,5,Belmont FC,-,Herbert Park,Cup,Y,,20260321,21-Mar
