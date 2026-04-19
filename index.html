@@ -503,9 +503,6 @@ function applyFilters() {
 function toggleBtn(btn) {
   const key = btn.dataset.key, val = btn.dataset.val;
   filters[key] = val;
-  // Also reset dependent filters
-  if (key === 'tp') { filters.age = 'all'; filters.div = 'all'; }
-  if (key === 'age') { filters.div = 'all'; }
   document.querySelectorAll(`[data-key="${key}"]`).forEach(b =>
     b.classList.toggle('active', b.dataset.val === val));
   applyFilters();
@@ -516,7 +513,6 @@ function toggleBtn(btn) {
 /* ── DROPDOWN HANDLERS ── */
 function setDropdown(key, val) {
   filters[key] = val;
-  if (key === 'age') { filters.div = 'all'; document.getElementById('divSel').value = 'all'; }
   applyFilters();
 }
 
