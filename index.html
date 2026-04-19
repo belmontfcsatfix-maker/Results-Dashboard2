@@ -210,7 +210,7 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 .stat-table th.right { text-align:right; }
 .stat-table th.center { text-align:center; }
 .stat-table td { padding:9px 14px; border-bottom:1px solid rgba(255,255,255,0.03); vertical-align:middle; white-space:normal; word-break:break-word; }
-.stat-table td.opp { max-width:110px; overflow:hidden; }
+.stat-table td.opp { max-width:88px; overflow:hidden; }
 .stat-table td.right { text-align:right; font-family:'Bebas Neue',sans-serif; font-size:0.95rem; color:var(--text); }
 .stat-table tr:last-child td { border-bottom:none; }
 .stat-table tr:hover td { background:rgba(255,255,255,0.02); }
@@ -380,7 +380,7 @@ function showError(msg) {
 let DATA = [];
 
 async function loadData() {
-  const csvFile = 'belmont_ddsl_data.csv?v=' + Date.now();
+ const csvFile = 'belmont_ddsl_data.csv?v=' + Date.now();
   try {
     const resp = await fetch(csvFile);
     if (!resp.ok) throw new Error(`HTTP ${resp.status} – ${resp.statusText}`);
@@ -595,6 +595,7 @@ function renderStats(filtered) {
     if (filters.age !== 'all' && g.age !== filters.age) return false;
     if (filters.div !== 'all' && g.division !== filters.div) return false;
     if (filters.date !== 'all' && g.date !== filters.date) return false;
+    if (filters.rival !== 'all') { const opp = g.is_home ? g.away : g.home; if (opp !== filters.rival) return false; }
     return true;
   });
   const total = pool.length;
@@ -958,9 +959,9 @@ function renderInsights() {
     ['#','Opponent','Goals','Games'],
     topScoredVs.map(([opp,s],i) => `<tr>
       <td>${rankIcon(i)}</td>
-      <td><span class="team-name">${esc2(opp)}</span></td>
+      <td style="max-width:88px;overflow:hidden;text-overflow:ellipsis"><span class="team-name">${esc2(opp)}</span></td>
       <td class="right">${barFill(s.goals,maxVsGoals,'green')}<span style="color:var(--green)">${s.goals}</span></td>
-      <td class="right" style="color:var(--muted);font-size:0.78rem;white-space:nowrap">${s.games}g</td>
+      <td class="right" style="color:var(--muted);font-size:0.78rem;white-space:nowrap">${s.games}</td>
     </tr>`)
   ));
 
@@ -978,9 +979,9 @@ function renderInsights() {
     ['#','Opponent','Conceded','Games'],
     topConceded.map(([opp,s],i) => `<tr>
       <td>${rankIcon(i)}</td>
-      <td><span class="team-name">${esc2(opp)}</span></td>
+      <td style="max-width:88px;overflow:hidden;text-overflow:ellipsis"><span class="team-name">${esc2(opp)}</span></td>
       <td class="right">${barFill(s.goals,maxConcG,'red')}<span style="color:var(--red)">${s.goals}</span></td>
-      <td class="right" style="color:var(--muted);font-size:0.78rem;white-space:nowrap">${s.games}g</td>
+      <td class="right" style="color:var(--muted);font-size:0.78rem;white-space:nowrap">${s.games}</td>
     </tr>`)
   ));
 
