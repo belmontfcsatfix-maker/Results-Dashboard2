@@ -777,21 +777,6 @@ function switchTab(tab, btn) {
 /* ════════════════════════════════
    INSIGHTS TAB
 ════════════════════════════════ */
-function insPool() {
-  const age = document.getElementById('ins-ageSel')?.value || 'all';
-  const tp  = document.getElementById('ins-tpSel')?.value  || 'all';
-  const ha  = document.getElementById('ins-haSel')?.value  || 'all';
-  return ALL.filter(g => {
-    if (g.result_type === 'np' || g.result_type === 'nr') return false; // played games with score only
-    if (g.h_goals === null) return false;
-    if (age !== 'all' && g.age !== age) return false;
-    if (tp  !== 'all' && g.tournament !== tp)  return false;
-    if (ha  === 'home' && !g.is_home) return false;
-    if (ha  === 'away' && g.is_home)  return false;
-    return true;
-  });
-}
-
 function rankIcon(i) {
   if (i===0) return '<span class="rank gold">①</span>';
   if (i===1) return '<span class="rank silver">②</span>';
@@ -814,9 +799,11 @@ function esc2(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 
 function insFilters() {
   return {
-    age: document.getElementById('ins-ageSel')?.value || 'all',
-    tp:  document.getElementById('ins-tpSel')?.value  || 'all',
-    ha:  document.getElementById('ins-haSel')?.value  || 'all',
+    group: document.getElementById('ins-groupSel')?.value || 'all',
+    age:   document.getElementById('ins-ageSel')?.value   || 'all',
+    div:   document.getElementById('ins-divSel')?.value   || 'all',
+    tp:    document.getElementById('ins-tpSel')?.value    || 'all',
+    ha:    document.getElementById('ins-haSel')?.value    || 'all',
   };
 }
 
@@ -825,10 +812,12 @@ function insPool() {
   return ALL.filter(g => {
     if (g.result_type === 'np' || g.result_type === 'nr') return false;
     if (g.h_goals === null) return false;
-    if (f.age !== 'all' && g.age !== f.age) return false;
-    if (f.tp  !== 'all' && g.tournament !== f.tp)  return false;
-    if (f.ha  === 'home' && !g.is_home) return false;
-    if (f.ha  === 'away' && g.is_home)  return false;
+    if (f.group !== 'all' && g.group !== f.group) return false;
+    if (f.age   !== 'all' && g.age !== f.age) return false;
+    if (f.div   !== 'all' && g.division !== f.div) return false;
+    if (f.tp    !== 'all' && g.tournament !== f.tp)  return false;
+    if (f.ha    === 'home' && !g.is_home) return false;
+    if (f.ha    === 'away' && g.is_home)  return false;
     return true;
   });
 }
@@ -838,10 +827,12 @@ function insPoolExcluding(key) {
   const f = insFilters();
   return ALL.filter(g => {
     if (g.result_type === 'np' || g.result_type === 'nr' || g.h_goals === null) return false;
-    if (key !== 'age' && f.age !== 'all' && g.age !== f.age) return false;
-    if (key !== 'tp'  && f.tp  !== 'all' && g.tournament !== f.tp)  return false;
-    if (key !== 'ha'  && f.ha  === 'home' && !g.is_home) return false;
-    if (key !== 'ha'  && f.ha  === 'away' && g.is_home)  return false;
+    if (key !== 'group' && f.group !== 'all' && g.group !== f.group) return false;
+    if (key !== 'age'   && f.age   !== 'all' && g.age !== f.age) return false;
+    if (key !== 'div'   && f.div   !== 'all' && g.division !== f.div) return false;
+    if (key !== 'tp'    && f.tp    !== 'all' && g.tournament !== f.tp)  return false;
+    if (key !== 'ha'    && f.ha    === 'home' && !g.is_home) return false;
+    if (key !== 'ha'    && f.ha    === 'away' && g.is_home)  return false;
     return true;
   });
 }
@@ -852,19 +843,29 @@ function insFilterChange(key, val) {
 }
 
 function resetInsights() {
-  document.getElementById('ins-ageSel').value = 'all';
-  document.getElementById('ins-tpSel').value  = 'all';
-  document.getElementById('ins-haSel').value  = 'all';
+  document.getElementById('ins-groupSel').value = 'all';
+  document.getElementById('ins-ageSel').value   = 'all';
+  document.getElementById('ins-divSel').value   = 'all';
+  document.getElementById('ins-tpSel').value    = 'all';
+  document.getElementById('ins-haSel').value    = 'all';
   rebuildInsDropdowns();
   renderInsights();
 }
 
 function rebuildInsDropdowns() {
   const f = insFilters();
+  // Group
+  const groupPool = insPoolExcluding('group');
+  const groups = [...new Set(groupPool.map(g=>g.group).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  rebuildInsSelect('ins-groupSel', groups, f.group, 'All Groups');
   // Age
   const agePool = insPoolExcluding('age');
   const ages = [...new Set(agePool.map(g=>g.age))].sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
   rebuildInsSelect('ins-ageSel', ages, f.age, 'All Ages');
+  // Division
+  const divPool = insPoolExcluding('div');
+  const divs = [...new Set(divPool.map(g=>g.division))].sort((a,b)=>parseFloat(a)-parseFloat(b));
+  rebuildInsSelect('ins-divSel', divs, f.div, 'All Divisions');
   // Type
   const tpPool = insPoolExcluding('tp');
   const tps = [...new Set(tpPool.map(g=>g.tournament))].sort();
@@ -1107,8 +1108,12 @@ function buildCard(title, sub, headers, rows, headerAligns) {
   <div class="stats-page">
     <!-- Filters -->
     <div class="stats-filters">
-      <span class="flbl">Age Group</span>
+      <span class="flbl">Group</span>
+      <select id="ins-groupSel" onchange="insFilterChange('group',this.value)"><option value="all">All Groups</option></select>
+      <span class="flbl" style="margin-left:8px">Age Group</span>
       <select id="ins-ageSel" onchange="insFilterChange('age',this.value)"><option value="all">All Ages</option></select>
+      <span class="flbl" style="margin-left:8px">Division</span>
+      <select id="ins-divSel" onchange="insFilterChange('div',this.value)"><option value="all">All Divisions</option></select>
       <span class="flbl" style="margin-left:8px">Championship</span>
       <select id="ins-tpSel" onchange="insFilterChange('tp',this.value)">
         <option value="all">All</option>
