@@ -288,12 +288,13 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
       </div>
     </div>
 
-    <!-- Box 5: Age + Division -->
+    <!-- Box 5: Age + Division + Group -->
     <div class="fbox">
-      <div class="fbox-title">Age &amp; Division</div>
+      <div class="fbox-title">Age, Division &amp; Group</div>
       <div class="fbox-body">
-        <select id="ageSel"  onchange="setDropdown('age',this.value)"></select>
-        <select id="divSel"  onchange="setDropdown('div',this.value)"></select>
+        <select id="ageSel"   onchange="setDropdown('age',this.value)"></select>
+        <select id="divSel"   onchange="setDropdown('div',this.value)"></select>
+        <select id="groupSel" onchange="setDropdown('group',this.value)"></select>
       </div>
     </div>
 
@@ -313,6 +314,7 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
       <thead>
         <tr>
           <th onclick="sortBy('date_sort')">Date ↕</th>
+          <th onclick="sortBy('group')">Group ↕</th>
           <th onclick="sortBy('division')">Division ↕</th>
           <th>Type</th>
           <th onclick="sortBy('home')" style="width:10%">Home ↕</th>
@@ -372,24 +374,38 @@ function showError(msg) {
   document.body.innerHTML = `<div style="padding:40px;font-family:sans-serif;color:#e74c3c;background:#050d1a;min-height:100vh">
     <h2 style="color:#fdb813;margin-bottom:12px">⚠ Could not load data</h2>
     <p style="color:#f0f4f8;margin-bottom:8px">${msg}</p>
-    <p style="color:#8ba2c1;font-size:0.85rem">Make sure <strong>belmont_ddsl_data.csv</strong> is in the same folder as this HTML file and that you are serving it from a web server (not opening it as a local file).</p>
+    <p style="color:#8ba2c1;font-size:0.85rem">Make sure at least one of <strong>gamesdata1.csv</strong> or <strong>gamesdata2.csv</strong> is in the same folder as this HTML file and that you are serving it from a web server (not opening it as a local file).</p>
   </div>`;
 }
 
 let DATA = [];
 
-async function loadData() {
- const csvFile = 'belmont_ddsl_data.csv?v=' + Date.now();
+async function tryFetch(url) {
   try {
-    const resp = await fetch(csvFile);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status} – ${resp.statusText}`);
+    const resp = await fetch(url);
+    if (!resp.ok) return null;
     const text = await resp.text();
-    DATA = parseCSV(text);
-    if (DATA.length === 0) throw new Error('CSV parsed but contains no rows.');
-    initDashboard();
-  } catch (err) {
-    showError(err.message);
+    const rows = parseCSV(text);
+    return rows.length > 0 ? rows : null;
+  } catch (e) {
+    return null;
   }
+}
+
+async function loadData() {
+  const v = '?v=' + Date.now();
+  const [rows1, rows2] = await Promise.all([
+    tryFetch('gamesdata1.csv' + v),
+    tryFetch('gamesdata2.csv' + v)
+  ]);
+
+  if (!rows1 && !rows2) {
+    showError('Neither gamesdata1.csv nor gamesdata2.csv could be loaded.');
+    return;
+  }
+
+  DATA = [...(rows1 || []), ...(rows2 || [])];
+  initDashboard();
 }
 
 loadData();
@@ -419,7 +435,8 @@ const ALL = DATA.map(g => {
     }
   }
   return { ...g, division: getDiv(g.division_raw), age: getAge(g.division_raw),
-    is_home: bh, result_type, tournament: g.tournament || 'League' };
+    is_home: bh, result_type, tournament: g.tournament || 'League',
+    group: g.group || '' };
 });
 
 // ── Last Updated: derive from latest game date in data ──
@@ -444,7 +461,8 @@ let filters = {
   date: 'all',
   age: 'all',
   div: 'all',
-  rival: 'all'
+  rival: 'all',
+  group: 'all'
 };
 let sortCol = 'date_sort', sortAsc = false;
 
@@ -463,6 +481,7 @@ function matchGame(g) {
     const opp = g.is_home ? g.away : g.home;
     if (opp !== filters.rival) return false;
   }
+  if (filters.group !== 'all' && g.group !== filters.group) return false;
   return true;
 }
 
@@ -476,6 +495,7 @@ function poolExcluding(key) {
     if (key !== 'div')  { if (filters.div !== 'all' && g.division !== filters.div) return false; }
     if (key !== 'date') { if (filters.date !== 'all' && g.date !== filters.date) return false; }
     if (key !== 'rival') { if (filters.rival !== 'all') { const opp2 = g.is_home ? g.away : g.home; if (opp2 !== filters.rival) return false; } }
+    if (key !== 'group') { if (filters.group !== 'all' && g.group !== filters.group) return false; }
     return true;
   });
 }
@@ -491,7 +511,7 @@ function applyFilters() {
   updateDropdowns();
   updateActiveCount();
   const isFiltered = filters.ha!=='all' || filters.st.size<ALL_ST.length ||
-    filters.tp!=='all' || filters.date!=='all' || filters.age!=='all' || filters.div!=='all' || filters.rival!=='all';
+    filters.tp!=='all' || filters.date!=='all' || filters.age!=='all' || filters.div!=='all' || filters.rival!=='all' || filters.group!=='all';
   document.getElementById('rcount').innerHTML = isFiltered
     ? `Showing <span>${filtered.length}</span> of ${ALL.length} matches`
     : `<span>${ALL.length}</span> matches total`;
@@ -540,6 +560,10 @@ function updateDropdowns() {
   const rivalPool = poolExcluding('rival');
   const rivals = [...new Set(rivalPool.map(g => g.is_home ? g.away : g.home))].sort((a,b)=>a.localeCompare(b));
   rebuildSelect('rivalSel', 'rival', rivals, filters.rival, 'Rival');
+
+  const groupPool = poolExcluding('group');
+  const groups = [...new Set(groupPool.map(g => g.group).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  rebuildSelect('groupSel', 'group', groups, filters.group, 'Group');
 }
 
 function rebuildSelect(id, key, options, currentVal, label) {
@@ -567,6 +591,7 @@ function updateActiveCount() {
   if (filters.age !== 'all') count++;
   if (filters.div !== 'all') count++;
   if (filters.rival !== 'all') count++;
+  if (filters.group !== 'all') count++;
   const el = document.getElementById('activeCount');
   el.textContent = count > 0 ? `${count} filter${count>1?'s':''} active` : '';
 }
@@ -591,6 +616,7 @@ function renderStats(filtered) {
     if (filters.div !== 'all' && g.division !== filters.div) return false;
     if (filters.date !== 'all' && g.date !== filters.date) return false;
     if (filters.rival !== 'all') { const opp = g.is_home ? g.away : g.home; if (opp !== filters.rival) return false; }
+    if (filters.group !== 'all' && g.group !== filters.group) return false;
     return true;
   });
   const total = pool.length;
@@ -669,7 +695,7 @@ function selectOnlySt(val) {
 function render(games) {
   const tb = document.getElementById('tbody');
   if (!games.length) {
-    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted)">No matches match the selected filters</td></tr>';
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted)">No matches match the selected filters</td></tr>';
     return;
   }
   tb.innerHTML = games.map(g => {
@@ -689,6 +715,7 @@ function render(games) {
       : '<span class="badge badge-league">Lge</span>';
     return `<tr>
       <td class="dcol">${g.date}</td>
+      <td class="divcol" style="color:var(--muted);font-weight:400;font-size:0.8rem">${g.group ? esc(g.group) : '<span style="opacity:0.3">—</span>'}</td>
       <td class="divcol">${esc(g.division)}</td>
       <td>${tb2}</td>
       <td>${homeT}</td>
@@ -704,7 +731,7 @@ function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 function sortBy(col) { sortAsc = sortCol===col ? !sortAsc : true; sortCol=col; applyFilters(); }
 
 function resetAll() {
-  filters = { ha:'all', st:new Set(ALL_ST), tp:'all', date:'all', age:'all', div:'all', rival:'all' };
+  filters = { ha:'all', st:new Set(ALL_ST), tp:'all', date:'all', age:'all', div:'all', rival:'all', group:'all' };
   sortCol = 'date_sort'; sortAsc = false;
   document.querySelectorAll('[data-key="ha"]').forEach(b => b.classList.toggle('active', b.dataset.val==='all'));
   document.querySelectorAll('[data-key="tp"]').forEach(b => b.classList.toggle('active', b.dataset.val==='all'));
