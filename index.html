@@ -243,7 +243,9 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
     <div class="sub">Herbert Park, Dublin 4 &nbsp;·&nbsp; Season 2025 / 26</div>
   </div>
   <div class="hdr-r">
-    <div class="lbl">Last Updated</div>
+    <div class="lbl">Files Loaded</div>
+    <div class="val" id="filesLoaded" style="font-size:0.75rem;letter-spacing:0.03em;color:var(--muted)">—</div>
+    <div class="lbl" style="margin-top:8px">Last Updated</div>
     <div class="val" id="lastUpdated">—</div>
   </div>
 </div>
@@ -292,9 +294,9 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
     <div class="fbox">
       <div class="fbox-title">Age, Division &amp; Group</div>
       <div class="fbox-body">
+        <select id="groupSel" onchange="setDropdown('group',this.value)"></select>
         <select id="ageSel"   onchange="setDropdown('age',this.value)"></select>
         <select id="divSel"   onchange="setDropdown('div',this.value)"></select>
-        <select id="groupSel" onchange="setDropdown('group',this.value)"></select>
       </div>
     </div>
 
@@ -402,6 +404,16 @@ async function loadData() {
   if (!rows1 && !rows2) {
     showError('Neither gamesdata1.csv nor gamesdata2.csv could be loaded.');
     return;
+  }
+
+  // Show which files loaded
+  const el = document.getElementById('filesLoaded');
+  if (el) {
+    const loaded = [rows1 ? 'gamesdata1' : null, rows2 ? 'gamesdata2' : null].filter(Boolean);
+    const missing = [!rows1 ? 'gamesdata1' : null, !rows2 ? 'gamesdata2' : null].filter(Boolean);
+    let html = loaded.map(f => `<span style="color:var(--green)">${f} ✓</span>`).join('&nbsp; ');
+    if (missing.length) html += '&nbsp; ' + missing.map(f => `<span style="color:var(--red);opacity:0.6">${f} ✗</span>`).join('&nbsp; ');
+    el.innerHTML = html;
   }
 
   DATA = [...(rows1 || []), ...(rows2 || [])];
