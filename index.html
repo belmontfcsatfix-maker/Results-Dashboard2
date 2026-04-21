@@ -319,7 +319,7 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
           <th style="text-align:center">Result</th>
           <th onclick="sortBy('away')">Away ↕</th>
           <th onclick="sortBy('referee')">Referee ↕</th>
-          <th onclick="sortBy('location')">Location ↕</th>
+        
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -696,7 +696,6 @@ function render(games) {
       <td style="text-align:center;min-width:120px">${result}</td>
       <td>${awayT}</td>
       <td class="refcol">${g.referee ? esc(g.referee) : '<span style="opacity:0.3">—</span>'}</td>
-      <td class="loccol">${g.location ? esc(g.location) : '<span style="opacity:0.3">—</span>'}</td>
     </tr>`;
   }).join('');
 }
