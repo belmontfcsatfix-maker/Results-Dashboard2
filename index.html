@@ -210,8 +210,13 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 .stat-table th.right { text-align:center; }
 .stat-table th.center { text-align:center; }
 .stat-table td { padding:7px 8px; border-bottom:1px solid rgba(255,255,255,0.03); vertical-align:middle; text-align:center; white-space:nowrap; }
-.stat-table td.opp { text-align:center; white-space:nowrap; }
+.stat-table td.opp { text-align:left; white-space:nowrap; }
 .stat-table td.right { text-align:center; font-family:'Bebas Neue',sans-serif; font-size:0.92rem; color:var(--text); }
+/* Ranked cards (1–6): narrow rank col, left-align all other cols */
+.stat-card--ranked .stat-table th:first-child,
+.stat-card--ranked .stat-table td:first-child { width:24px; min-width:24px; max-width:24px; padding-left:6px; padding-right:4px; text-align:center; }
+.stat-card--ranked .stat-table th:not(:first-child) { text-align:left; }
+.stat-card--ranked .stat-table td:not(:first-child) { text-align:left; }
 .stat-table tr:last-child td { border-bottom:none; }
 .stat-table tr:hover td { background:rgba(255,255,255,0.02); }
 .rank { font-family:'Bebas Neue',sans-serif; font-size:0.85rem; color:var(--muted); width:16px; }
@@ -984,7 +989,7 @@ function renderInsights() {
         <td><span style="color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:1rem">+${g.margin}</span></td>
       </tr>`;
     }),
-    [null,null,null,null]
+    [null,null,null,null],true
   ));
 
   /* ── 2. Biggest Defeats ── */
@@ -1006,7 +1011,7 @@ function renderInsights() {
         <td><span style="color:var(--red);font-family:'Bebas Neue',sans-serif;font-size:1rem">-${g.margin}</span></td>
       </tr>`;
     }),
-    [null,null,null,null]
+    [null,null,null,null],true
   ));
 
   /* ── 3. Highest Scoring Games ── */
@@ -1023,7 +1028,7 @@ function renderInsights() {
         <td><span style="color:var(--yellow);font-family:'Bebas Neue',sans-serif;font-size:1rem">${tot}</span></td>
       </tr>`;
     }),
-    [null,null,null,null]
+    [null,null,null,null],true
   ));
 
   /* ── 4. Most Goals Scored by Belmont ── */
@@ -1040,7 +1045,7 @@ function renderInsights() {
         <td><span style="color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:1rem">${g.bfc_goals}</span></td>
       </tr>`;
     }),
-    [null,null,null,null]
+    [null,null,null,null],true
   ));
 
   /* ── 5. Opponents Belmont Scored Most Against ── */
@@ -1060,7 +1065,7 @@ function renderInsights() {
       <td class="opp"><span class="team-name">${esc2(opp)}</span></td>
       <td>${barFill(s.goals,maxVsGoals,'green')}<span style="color:var(--green)">${s.goals}</span></td>
       <td style="color:var(--muted);font-size:0.78rem;white-space:nowrap">${s.games}</td>
-    </tr>`)
+    </tr>`), null, true
   ));
 
   /* ── 6. Toughest Opponents ── */
@@ -1080,7 +1085,7 @@ function renderInsights() {
       <td class="opp"><span class="team-name">${esc2(opp)}</span></td>
       <td>${barFill(s.goals,maxConcG,'red')}<span style="color:var(--red)">${s.goals}</span></td>
       <td style="color:var(--muted);font-size:0.78rem;white-space:nowrap">${s.games}</td>
-    </tr>`)
+    </tr>`), null, true
   ));
 
   /* ── 7. Performance by Age Group ── */
@@ -1143,7 +1148,7 @@ function renderInsights() {
   grid.innerHTML = cards.join('');
 }
 
-function buildCard(title, sub, headers, rows, headerAligns) {
+function buildCard(title, sub, headers, rows, headerAligns, ranked) {
   const ths = headers.map((h,i) => {
     let cls = '';
     if (headerAligns && headerAligns[i]) cls = headerAligns[i];
@@ -1151,7 +1156,7 @@ function buildCard(title, sub, headers, rows, headerAligns) {
     return `<th${cls?' class="'+cls+'"':''}>${h}</th>`;
   }).join('');
   const trs = rows.length ? rows.join('') : `<tr><td colspan="${headers.length}" class="no-data">No data</td></tr>`;
-  return `<div class="stat-card">
+  return `<div class="stat-card${ranked?' stat-card--ranked':''}">
     <div class="stat-card-header">
       <div class="stat-card-title">${title}</div>
       <div class="stat-card-sub">${sub}</div>
