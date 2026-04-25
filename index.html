@@ -199,27 +199,27 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 .stats-filters .flbl { font-size:0.58rem; font-weight:700; text-transform:uppercase; letter-spacing:0.13em; color:var(--yellow); opacity:0.85; }
 .stats-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:20px; }
 .stat-card { background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }
-.stat-card .stat-table-wrap { overflow-y:auto; max-height:380px; }
+.stat-card .stat-table-wrap { overflow-x:auto; overflow-y:auto; max-height:380px; }
 .stat-card-header { padding:14px 18px 10px; border-bottom:1px solid var(--border);
   display:flex; align-items:center; justify-content:space-between; }
 .stat-card-title { font-family:'Bebas Neue',sans-serif; font-size:1.05rem; letter-spacing:0.06em; color:var(--yellow); }
 .stat-card-sub { font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
-.stat-table { width:100%; border-collapse:collapse; font-size:0.8rem; }
-.stat-table th { padding:8px 14px; text-align:left; font-size:0.58rem; font-weight:700; text-transform:uppercase;
-  letter-spacing:0.1em; color:var(--muted); border-bottom:1px solid var(--border); background:var(--blue2); }
-.stat-table th.right { text-align:right; }
+.stat-table { width:100%; border-collapse:collapse; font-size:0.78rem; }
+.stat-table th { padding:6px 8px; text-align:center; font-size:0.56rem; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.08em; color:var(--muted); border-bottom:1px solid var(--border); background:var(--blue2); white-space:nowrap; }
+.stat-table th.right { text-align:center; }
 .stat-table th.center { text-align:center; }
-.stat-table td { padding:9px 14px; border-bottom:1px solid rgba(255,255,255,0.03); vertical-align:middle; white-space:normal; word-break:break-word; }
-.stat-table td.opp { max-width:88px; overflow:hidden; }
-.stat-table td.right { text-align:right; font-family:'Bebas Neue',sans-serif; font-size:0.95rem; color:var(--text); }
+.stat-table td { padding:7px 8px; border-bottom:1px solid rgba(255,255,255,0.03); vertical-align:middle; text-align:center; white-space:nowrap; }
+.stat-table td.opp { text-align:center; white-space:nowrap; }
+.stat-table td.right { text-align:center; font-family:'Bebas Neue',sans-serif; font-size:0.92rem; color:var(--text); }
 .stat-table tr:last-child td { border-bottom:none; }
 .stat-table tr:hover td { background:rgba(255,255,255,0.02); }
-.rank { font-family:'Bebas Neue',sans-serif; font-size:0.9rem; color:var(--muted); width:24px; }
+.rank { font-family:'Bebas Neue',sans-serif; font-size:0.85rem; color:var(--muted); width:16px; }
 .rank.gold   { color:#FFD700; }
 .rank.silver { color:#C0C0C0; }
 .rank.bronze { color:#CD7F32; }
-.bar-wrap { display:flex; align-items:center; gap:8px; }
-.bar-bg { flex:1; height:5px; background:rgba(255,255,255,0.07); border-radius:3px; overflow:hidden; min-width:40px; }
+.bar-wrap { display:flex; align-items:center; gap:4px; }
+.bar-bg { flex:1; height:4px; background:rgba(255,255,255,0.07); border-radius:3px; overflow:hidden; min-width:20px; max-width:44px; }
 .bar-fill { height:100%; border-radius:3px; background:var(--yellow); transition:width 0.4s ease; }
 .bar-fill.green { background:var(--green); }
 .bar-fill.red   { background:var(--red); }
@@ -228,7 +228,7 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 .score-chip.win  { background:rgba(46,204,113,0.15); color:var(--green); border:1px solid rgba(46,204,113,0.3); }
 .score-chip.loss { background:rgba(231,76,60,0.15);  color:var(--red);   border:1px solid rgba(231,76,60,0.3); }
 .score-chip.draw { background:rgba(253,184,19,0.1);  color:var(--yellow);border:1px solid rgba(253,184,19,0.25); }
-.team-name { font-size:0.82rem; color:var(--text); }
+.team-name { font-size:0.76rem; color:var(--text); }
 .team-name.bfc-name { color:var(--yellow); font-weight:700; }
 .no-data { padding:24px; text-align:center; color:var(--muted); font-size:0.8rem; }
 @media(max-width:700px) { .stats-grid { grid-template-columns:1fr; } .tab-bar,.stats-page { padding-left:16px; padding-right:16px; } }
@@ -337,6 +337,7 @@ function setDropdown(key, val)       { if(window._setDropdown) window._setDropdo
 function sortBy(col)                 { if(window._sortBy) window._sortBy(col); }
 function resetAll()                  { if(window._resetAll) window._resetAll(); }
 function selectOnlySt(val)           { if(window._selectOnlySt) window._selectOnlySt(val); }
+function selectResultsOnly()         { if(window._selectResultsOnly) window._selectResultsOnly(); }
 function switchTab(tab, btn)         { if(window._switchTab) window._switchTab(tab, btn); }
 function insFilterChange(key, val)   { if(window._insFilterChange) window._insFilterChange(key, val); }
 function resetInsights()             { if(window._resetInsights) window._resetInsights(); }
@@ -376,7 +377,7 @@ function showError(msg) {
   document.body.innerHTML = `<div style="padding:40px;font-family:sans-serif;color:#e74c3c;background:#050d1a;min-height:100vh">
     <h2 style="color:#fdb813;margin-bottom:12px">⚠ Could not load data</h2>
     <p style="color:#f0f4f8;margin-bottom:8px">${msg}</p>
-    <p style="color:#8ba2c1;font-size:0.85rem">Make sure at least one of <strong>gamesdata1.csv</strong> or <strong>gamesdata2.csv</strong> is in the same folder as this HTML file and that you are serving it from a web server (not opening it as a local file).</p>
+    <p style="color:#8ba2c1;font-size:0.85rem">Make sure your Google Sheet is shared as <strong>"Anyone with the link"</strong> and that the Sheet ID and gid values are correct.</p>
   </div>`;
 }
 
@@ -395,22 +396,30 @@ async function tryFetch(url) {
 }
 
 async function loadData() {
-  const v = '?v=' + Date.now();
+  const sheetId = '1Dej_HbjnZZb3Zrb86ExJ6Mg4XCb0PrT5_5BQOfyRJbM';
+  const url1 = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0`;
+  const url2 = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=827954`;
+
   const [rows1, rows2] = await Promise.all([
-    tryFetch('gamesdata1.csv' + v),
-    tryFetch('gamesdata2.csv' + v)
+    tryFetch(url1),
+    tryFetch(url2)
   ]);
 
   if (!rows1 && !rows2) {
-    showError('Neither gamesdata1.csv nor gamesdata2.csv could be loaded.');
+    DATA = [
+      { date:'1-Jan-99', date_sort:'1999-01-01', division_raw:'x.xx', home:'Belmont FC', h_goals:9, a_goals:9, away:'Test', referee:'Test', location:'', tournament:'League', played:'Y', reason:'' },
+      { date:'1-Jan-99', date_sort:'1999-01-01', division_raw:'x.xx', home:'Belmont FC', h_goals:9, a_goals:9, away:'Test', referee:'Test', location:'', tournament:'League', played:'Y', reason:'' },
+      { date:'1-Jan-99', date_sort:'1999-01-01', division_raw:'x.xx', home:'Belmont FC', h_goals:9, a_goals:9, away:'Test', referee:'Test', location:'', tournament:'League', played:'Y', reason:'' }
+    ];
+    initDashboard();
     return;
   }
 
   // Show which files loaded
   const el = document.getElementById('filesLoaded');
   if (el) {
-    const loaded = [rows1 ? 'gamesdata1' : null, rows2 ? 'gamesdata2' : null].filter(Boolean);
-    const missing = [!rows1 ? 'gamesdata1' : null, !rows2 ? 'gamesdata2' : null].filter(Boolean);
+    const loaded = [rows1 ? 'Sheet1' : null, rows2 ? 'Sheet2' : null].filter(Boolean);
+    const missing = [!rows1 ? 'Sheet1' : null, !rows2 ? 'Sheet2' : null].filter(Boolean);
     let html = loaded.map(f => `<span style="color:var(--green)">${f} ✓</span>`).join('&nbsp; ');
     if (missing.length) html += '&nbsp; ' + missing.map(f => `<span style="color:var(--red);opacity:0.6">${f} ✗</span>`).join('&nbsp; ');
     el.innerHTML = html;
@@ -425,11 +434,17 @@ loadData();
 
 function initDashboard() {
 function getDiv(r) {
-  const m = String(r).match(/^(\d+(?:\.\d+(?:\/\d+)*)?)/);
+  // Strip optional leading 'U', then capture first run of digits, dots, and slashes
+  const m = String(r).match(/^U?(\d[\d./]*)/i);
   return m ? m[1] : r;
 }
 function getAge(r) {
-  const m = String(r).match(/^(\d+)/);
+  // Extract digits after optional 'U', stopping before the first '.'
+  // e.g. "U11.3 Girls" → "U11",  "13.2" → "U13",  "Girls U10.1" → "U10"
+  const m = String(r).match(/U(\d+)\./i)      // "U11." style
+         || String(r).match(/U(\d+)/i)         // "U11" (no dot)
+         || String(r).match(/(\d+)\./i)         // "13." style (no leading U)
+         || String(r).match(/(\d+)/i);          // bare digits fallback
   return m ? 'U' + m[1] : 'Other';
 }
 
@@ -446,7 +461,9 @@ const ALL = DATA.map(g => {
       result_type = 'nr';
     }
   }
-  return { ...g, division: getDiv(g.division_raw), age: getAge(g.division_raw),
+  const isGirls = /girls/i.test(g.division_raw || '');
+  const divVal = getDiv(g.division_raw) + (isGirls ? 'G' : '');
+  return { ...g, division: divVal, age: getAge(g.division_raw),
     is_home: bh, result_type, tournament: g.tournament || 'League',
     group: g.group || '' };
 });
@@ -631,7 +648,18 @@ function renderStats(filtered) {
     if (filters.group !== 'all' && g.group !== filters.group) return false;
     return true;
   });
-  const total = pool.length;
+  const total = ALL.filter(g => {
+    if (filters.ha === 'home' && !g.is_home) return false;
+    if (filters.ha === 'away' && g.is_home)  return false;
+    if (filters.tp !== 'all' && g.tournament !== filters.tp) return false;
+    if (filters.age !== 'all' && g.age !== filters.age) return false;
+    if (filters.div !== 'all' && g.division !== filters.div) return false;
+    if (filters.date !== 'all' && g.date !== filters.date) return false;
+    if (filters.rival !== 'all') { const opp = g.is_home ? g.away : g.home; if (opp !== filters.rival) return false; }
+    if (filters.group !== 'all' && g.group !== filters.group) return false;
+    if (!filters.st.has(g.result_type)) return false;
+    return true;
+  }).length;
   const played = pool.filter(g => g.result_type === 'win' || g.result_type === 'draw' || g.result_type === 'loss');
   const w  = played.filter(g=>g.result_type==='win').length;
   const d  = played.filter(g=>g.result_type==='draw').length;
@@ -651,28 +679,53 @@ function renderStats(filtered) {
       `<div class="np-reason"><span class="dot" style="background:${reasonColour(r)}"></span><span class="cnt">${cnt}</span> ${r}</div>`
     ).join('');
 
+  const scoredGames = ALL.filter(g => {
+    if (filters.ha === 'home' && !g.is_home) return false;
+    if (filters.ha === 'away' && g.is_home)  return false;
+    if (filters.tp !== 'all' && g.tournament !== filters.tp) return false;
+    if (filters.age !== 'all' && g.age !== filters.age) return false;
+    if (filters.div !== 'all' && g.division !== filters.div) return false;
+    if (filters.date !== 'all' && g.date !== filters.date) return false;
+    if (filters.rival !== 'all') { const opp = g.is_home ? g.away : g.home; if (opp !== filters.rival) return false; }
+    if (filters.group !== 'all' && g.group !== filters.group) return false;
+    if (!filters.st.has(g.result_type)) return false;
+    if (g.h_goals === null) return false;
+    return g.result_type === 'win' || g.result_type === 'draw' || g.result_type === 'loss';
+  });
+  const gf = scoredGames.reduce((s,g) => s + (g.is_home ? g.h_goals : g.a_goals), 0);
+  const ga = scoredGames.reduce((s,g) => s + (g.is_home ? g.a_goals : g.h_goals), 0);
+
   // Active state: pill is highlighted if its result_type is in the filter AND not all selected
   const isAllSt = filters.st.size === ALL_ST.length;
   const act = v => (!isAllSt && filters.st.has(v)) ? 'active-pill' : '';
   const totalAct = isAllSt ? '' : 'active-pill'; // total pill active when filtering
 
   document.getElementById('statsRow').innerHTML = `
-    <button class="pill ${isAllSt?'':'' }" onclick="selectOnlySt(null)">
-      <div class="v">${total}</div><div class="l">Total</div>
+    <button class="pill ${isAllSt?'':'' }" onclick="selectOnlySt(null)" style="flex:0 1 126px;min-width:0;">
+      <div class="v">${total}</div>
+      <div class="l">Total</div>
+      <div style="display:flex;gap:6px;margin-top:6px;color:var(--muted);font-size:0.65rem;white-space:nowrap">
+        <span><span style="color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:0.85rem">${gf}</span> GF</span>
+        <span><span style="color:var(--red);font-family:'Bebas Neue',sans-serif;font-size:0.85rem">${ga}</span> GA</span>
+      </div>
     </button>
-    <button class="pill ${act('win')}" onclick="selectOnlySt('win')">
+    <button class="pill ${filters.st.size===3&&filters.st.has('win')&&filters.st.has('draw')&&filters.st.has('loss')?'active-pill':''}" onclick="selectResultsOnly()" style="flex:0 1 126px;min-width:0;">
+      <div class="v" style="color:var(--yellow)">${played.length}</div>
+      <div class="l">With Results</div>
+    </button>
+    <button class="pill ${act('win')}" onclick="selectOnlySt('win')" style="flex:0 1 112px;min-width:0;">
       <div class="v" style="color:var(--green)">${w}</div><div class="l">Wins</div>
     </button>
-    <button class="pill ${act('draw')}" onclick="selectOnlySt('draw')">
+    <button class="pill ${act('draw')}" onclick="selectOnlySt('draw')" style="flex:0 1 112px;min-width:0;">
       <div class="v">${d}</div><div class="l">Draws</div>
     </button>
-    <button class="pill ${act('loss')}" onclick="selectOnlySt('loss')">
+    <button class="pill ${act('loss')}" onclick="selectOnlySt('loss')" style="flex:0 1 112px;min-width:0;">
       <div class="v" style="color:var(--red)">${l}</div><div class="l">Losses</div>
     </button>
-    <button class="pill ${act('nr')}" onclick="selectOnlySt('nr')">
+    <button class="pill ${act('nr')}" onclick="selectOnlySt('nr')" style="flex:0 1 140px;min-width:0;">
       <div class="v" style="color:var(--amber)">${nr}</div><div class="l">Not Reported</div>
     </button>
-    <button class="pill-np ${act('np')}" onclick="selectOnlySt('np')">
+    <button class="pill-np ${act('np')}" onclick="selectOnlySt('np')" style="flex:0 1 auto;min-width:0;">
       <div class="main">
         <div class="v" style="color:var(--muted)">${np}</div>
         <div class="l">Not Played</div>
@@ -683,6 +736,16 @@ function renderStats(filtered) {
 
 // Clicking a stat pill toggles that result type on/off (multi-select)
 // Clicking Total resets to all. Clicking an already-solo selection resets to all.
+function selectResultsOnly() {
+  const resultTypes = new Set(['win','draw','loss']);
+  const alreadyResultsOnly = filters.st.size === 3 && filters.st.has('win') && filters.st.has('draw') && filters.st.has('loss');
+  if (alreadyResultsOnly) {
+    filters.st = new Set(ALL_ST);
+  } else {
+    filters.st = resultTypes;
+  }
+  applyFilters();
+}
 function selectOnlySt(val) {
   if (val === null) {
     // Total clicked — reset to all
@@ -751,14 +814,15 @@ function resetAll() {
 }
 
 // Register all event-handler functions as global so onclick="" attributes work
-window._toggleBtn       = toggleBtn;
-window._setDropdown     = setDropdown;
-window._sortBy          = sortBy;
-window._resetAll        = resetAll;
-window._selectOnlySt    = selectOnlySt;
-window._switchTab       = switchTab;
-window._insFilterChange = insFilterChange;
-window._resetInsights   = resetInsights;
+window._toggleBtn          = toggleBtn;
+window._setDropdown        = setDropdown;
+window._sortBy             = sortBy;
+window._resetAll           = resetAll;
+window._selectOnlySt       = selectOnlySt;
+window._selectResultsOnly  = selectResultsOnly;
+window._switchTab          = switchTab;
+window._insFilterChange    = insFilterChange;
+window._resetInsights      = resetInsights;
 
 // Initial render
 applyFilters();
@@ -915,12 +979,12 @@ function renderInsights() {
       const opp = g.is_home ? g.away : g.home;
       return `<tr>
         <td>${rankIcon(i)}</td>
-        <td class="opp"><span class="team-name" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc2(opp)}</span><span style="font-size:0.65rem;color:var(--muted);white-space:nowrap">${g.date} · ${g.division}</span></td>
-        <td style="text-align:center;white-space:nowrap">${scoreChip(g.h_goals, g.a_goals, g.is_home)}</td>
-        <td class="right"><span style="color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:1rem">+${g.margin}</span></td>
+        <td class="opp"><div class="team-name">${esc2(opp)}</div><div style="font-size:0.65rem;color:var(--muted)">${g.date} · ${g.division}</div></td>
+        <td>${scoreChip(g.h_goals, g.a_goals, g.is_home)}</td>
+        <td><span style="color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:1rem">+${g.margin}</span></td>
       </tr>`;
     }),
-    [null,null,'center','right']
+    [null,null,null,null]
   ));
 
   /* ── 2. Biggest Defeats ── */
@@ -937,12 +1001,12 @@ function renderInsights() {
       const opp = g.is_home ? g.away : g.home;
       return `<tr>
         <td>${rankIcon(i)}</td>
-        <td class="opp"><span class="team-name" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc2(opp)}</span><span style="font-size:0.65rem;color:var(--muted);white-space:nowrap">${g.date} · ${g.division}</span></td>
-        <td style="text-align:center;white-space:nowrap">${scoreChip(g.h_goals, g.a_goals, g.is_home)}</td>
-        <td class="right"><span style="color:var(--red);font-family:'Bebas Neue',sans-serif;font-size:1rem">-${g.margin}</span></td>
+        <td class="opp"><div class="team-name">${esc2(opp)}</div><div style="font-size:0.65rem;color:var(--muted)">${g.date} · ${g.division}</div></td>
+        <td>${scoreChip(g.h_goals, g.a_goals, g.is_home)}</td>
+        <td><span style="color:var(--red);font-family:'Bebas Neue',sans-serif;font-size:1rem">-${g.margin}</span></td>
       </tr>`;
     }),
-    [null,null,'center','right']
+    [null,null,null,null]
   ));
 
   /* ── 3. Highest Scoring Games ── */
@@ -954,12 +1018,12 @@ function renderInsights() {
       const tot = g.h_goals + g.a_goals;
       return `<tr>
         <td>${rankIcon(i)}</td>
-        <td class="opp"><span class="team-name" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc2(opp)}</span><span style="font-size:0.65rem;color:var(--muted);white-space:nowrap">${g.date} · ${g.division}</span></td>
-        <td style="text-align:center;white-space:nowrap">${scoreChip(g.h_goals, g.a_goals, g.is_home)}</td>
-        <td class="right"><span style="color:var(--yellow);font-family:'Bebas Neue',sans-serif;font-size:1rem">${tot}</span></td>
+        <td class="opp"><div class="team-name">${esc2(opp)}</div><div style="font-size:0.65rem;color:var(--muted)">${g.date} · ${g.division}</div></td>
+        <td>${scoreChip(g.h_goals, g.a_goals, g.is_home)}</td>
+        <td><span style="color:var(--yellow);font-family:'Bebas Neue',sans-serif;font-size:1rem">${tot}</span></td>
       </tr>`;
     }),
-    [null,null,'center','right']
+    [null,null,null,null]
   ));
 
   /* ── 4. Most Goals Scored by Belmont ── */
@@ -971,12 +1035,12 @@ function renderInsights() {
       const opp = g.is_home ? g.away : g.home;
       return `<tr>
         <td>${rankIcon(i)}</td>
-        <td class="opp"><span class="team-name" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc2(opp)}</span><span style="font-size:0.65rem;color:var(--muted);white-space:nowrap">${g.date} · ${g.division}</span></td>
-        <td style="text-align:center;white-space:nowrap">${scoreChip(g.h_goals, g.a_goals, g.is_home)}</td>
-        <td class="right"><span style="color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:1rem">${g.bfc_goals}</span></td>
+        <td class="opp"><div class="team-name">${esc2(opp)}</div><div style="font-size:0.65rem;color:var(--muted)">${g.date} · ${g.division}</div></td>
+        <td>${scoreChip(g.h_goals, g.a_goals, g.is_home)}</td>
+        <td><span style="color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:1rem">${g.bfc_goals}</span></td>
       </tr>`;
     }),
-    [null,null,'center','right']
+    [null,null,null,null]
   ));
 
   /* ── 5. Opponents Belmont Scored Most Against ── */
@@ -993,9 +1057,9 @@ function renderInsights() {
     ['#','Opponent','Goals','Games'],
     topScoredVs.map(([opp,s],i) => `<tr>
       <td>${rankIcon(i)}</td>
-      <td style="max-width:88px;overflow:hidden;text-overflow:ellipsis"><span class="team-name">${esc2(opp)}</span></td>
-      <td class="right">${barFill(s.goals,maxVsGoals,'green')}<span style="color:var(--green)">${s.goals}</span></td>
-      <td class="right" style="color:var(--muted);font-size:0.78rem;white-space:nowrap">${s.games}</td>
+      <td class="opp"><span class="team-name">${esc2(opp)}</span></td>
+      <td>${barFill(s.goals,maxVsGoals,'green')}<span style="color:var(--green)">${s.goals}</span></td>
+      <td style="color:var(--muted);font-size:0.78rem;white-space:nowrap">${s.games}</td>
     </tr>`)
   ));
 
@@ -1013,9 +1077,9 @@ function renderInsights() {
     ['#','Opponent','Conceded','Games'],
     topConceded.map(([opp,s],i) => `<tr>
       <td>${rankIcon(i)}</td>
-      <td style="max-width:88px;overflow:hidden;text-overflow:ellipsis"><span class="team-name">${esc2(opp)}</span></td>
-      <td class="right">${barFill(s.goals,maxConcG,'red')}<span style="color:var(--red)">${s.goals}</span></td>
-      <td class="right" style="color:var(--muted);font-size:0.78rem;white-space:nowrap">${s.games}</td>
+      <td class="opp"><span class="team-name">${esc2(opp)}</span></td>
+      <td>${barFill(s.goals,maxConcG,'red')}<span style="color:var(--red)">${s.goals}</span></td>
+      <td style="color:var(--muted);font-size:0.78rem;white-space:nowrap">${s.games}</td>
     </tr>`)
   ));
 
@@ -1035,15 +1099,15 @@ function renderInsights() {
       const gdStr = gd>0?`<span style="color:var(--green)">+${gd}</span>`:gd<0?`<span style="color:var(--red)">${gd}</span>`:`<span style="color:var(--muted)">0</span>`;
       return `<tr>
         <td style="font-family:'Bebas Neue',sans-serif;color:var(--yellow);white-space:nowrap">${age}</td>
-        <td style="text-align:right;color:var(--green);font-family:'Bebas Neue',sans-serif">${s.w}</td>
-        <td style="text-align:right;font-family:'Bebas Neue',sans-serif">${s.d}</td>
-        <td style="text-align:right;color:var(--red);font-family:'Bebas Neue',sans-serif">${s.l}</td>
-        <td style="text-align:right;color:var(--muted);font-family:'Bebas Neue',sans-serif">${s.gf}</td>
-        <td style="text-align:right;color:var(--muted);font-family:'Bebas Neue',sans-serif">${s.ga}</td>
-        <td style="text-align:right;font-family:'Bebas Neue',sans-serif">${gdStr}</td>
+        <td style="text-align:center;color:var(--green);font-family:'Bebas Neue',sans-serif">${s.w}</td>
+        <td style="text-align:center;font-family:'Bebas Neue',sans-serif">${s.d}</td>
+        <td style="text-align:center;color:var(--red);font-family:'Bebas Neue',sans-serif">${s.l}</td>
+        <td style="text-align:center;color:var(--muted);font-family:'Bebas Neue',sans-serif">${s.gf}</td>
+        <td style="text-align:center;color:var(--muted);font-family:'Bebas Neue',sans-serif">${s.ga}</td>
+        <td style="text-align:center;font-family:'Bebas Neue',sans-serif">${gdStr}</td>
       </tr>`;
     }),
-    [null,'right','right','right','right','right','right']
+    [null,'center','center','center','center','center','center']
   ));
 
   /* ── 8. Results by Match Day ── */
@@ -1066,14 +1130,14 @@ function renderInsights() {
       const pctCol = pct>=60?'var(--green)':pct>=40?'var(--yellow)':'var(--red)';
       return `<tr>
         <td style="font-family:'Bebas Neue',sans-serif;color:var(--muted);white-space:nowrap">${date}</td>
-        <td style="text-align:right;color:var(--green);font-family:'Bebas Neue',sans-serif">${s.w}</td>
-        <td style="text-align:right;font-family:'Bebas Neue',sans-serif">${s.d}</td>
-        <td style="text-align:right;color:var(--red);font-family:'Bebas Neue',sans-serif">${s.l}</td>
-        <td style="text-align:right;color:var(--muted);font-family:'Bebas Neue',sans-serif">${tot}</td>
-        <td style="text-align:right;font-family:'Bebas Neue',sans-serif;color:${pctCol}">${pct}%</td>
+        <td style="text-align:center;color:var(--green);font-family:'Bebas Neue',sans-serif">${s.w}</td>
+        <td style="text-align:center;font-family:'Bebas Neue',sans-serif">${s.d}</td>
+        <td style="text-align:center;color:var(--red);font-family:'Bebas Neue',sans-serif">${s.l}</td>
+        <td style="text-align:center;color:var(--muted);font-family:'Bebas Neue',sans-serif">${tot}</td>
+        <td style="text-align:center;font-family:'Bebas Neue',sans-serif;color:${pctCol}">${pct}%</td>
       </tr>`;
     }),
-    [null,'right','right','right','right','right']
+    [null,'center','center','center','center','center']
   ));
 
   grid.innerHTML = cards.join('');
@@ -1097,7 +1161,6 @@ function buildCard(title, sub, headers, rows, headerAligns) {
     </div>
   </div>`;
 }
-
 
 }
 </script>
@@ -1128,5 +1191,6 @@ function buildCard(title, sub, headers, rows, headerAligns) {
     <div class="stats-grid" id="insightsGrid"></div>
   </div>
 </div>
+
 </body>
 </html>
