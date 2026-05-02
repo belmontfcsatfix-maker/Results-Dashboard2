@@ -292,14 +292,14 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 </div>
 
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('match-day',this)">📋 Match Day</button>
-  <button class="tab-btn" onclick="switchTab('fixtures',this)">🏆 Results</button>
+  <button class="tab-btn" onclick="switchTab('match-day',this)">📋 Match Day</button>
+  <button class="tab-btn active" onclick="switchTab('fixtures',this)">🏆 Results</button>
   <button class="tab-btn" onclick="switchTab('insights',this)">💡 Season Insights</button>
   <button class="tab-btn" onclick="switchTab('performance',this)">📊 Teams Performance</button>
   <button class="tab-btn" onclick="switchTab('activity',this)">📈 Teams Activity</button>
 </div>
 
-<div id="tab-match-day" class="tab-panel active">
+<div id="tab-match-day" class="tab-panel">
 <!-- ═══════════ MATCH DAY TAB — NEW ═══════════ -->
 <div style="padding:24px 20px 48px;">
 
@@ -361,7 +361,7 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 /* ════════════════════════════════════════
    MATCH DAY TAB — DATA & RENDER
    Driven entirely by FIXTURES_DATA loaded
-   from Google Sheets (gid 1892133300)
+   from Google Sheets
 ════════════════════════════════════════ */
 
 // Division colour palette (non-traffic-light)
@@ -510,7 +510,7 @@ function renderMatchDay() {
   tbody.innerHTML = '';
 
   if (!MD_GAMES.length) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No fixture data loaded yet — check your Google Sheet (gid: 1892133300)</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No fixture data loaded yet — check your Google Sheet connection</td></tr>`;
   } else {
     MD_GAMES.forEach((g, i) => {
       const dc = mdDivColor(g.div);
@@ -774,7 +774,7 @@ window._renderMatchDay = renderMatchDay;
 </script>
 </div>
 
-<div id="tab-fixtures" class="tab-panel">
+<div id="tab-fixtures" class="tab-panel active">
 <div id="statsRow" class="stats"></div>
 
 <div class="filters-bar">
