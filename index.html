@@ -304,9 +304,18 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 <div style="padding:24px 20px 48px;">
 
   <!-- Page subtitle -->
-  <div style="margin-bottom:20px;">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.06em;color:var(--yellow);">Match Day — Fixtures &amp; Pitches</div>
-    <div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:3px;">Saturday 25 April 2026 &nbsp;·&nbsp; Belmont FC Home &amp; Away</div>
+  <div style="margin-bottom:20px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.06em;color:var(--yellow);">Match Day — Fixtures &amp; Pitches</div>
+      <div id="md-subtitle" style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:3px;">Belmont FC Home &amp; Away</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;color:var(--yellow);opacity:0.85;">Date</span>
+      <select id="md-date-sel" onchange="if(window._renderMatchDay) window._renderMatchDay()"
+        style="background:var(--blue2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.8rem;padding:6px 28px 6px 10px;border-radius:8px;outline:none;appearance:none;cursor:pointer;background-image:url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'9\' height=\'9\' fill=\'%238ba2c1\'%3E%3Cpath d=\'M0 3l4.5 4.5L9 3z\'/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center;">
+        <option value="all">All Dates</option>
+      </select>
+    </div>
   </div>
 
   <!-- ── LEGEND ── -->
@@ -377,12 +386,59 @@ function renderMatchDay() {
     return '';
   }
 
+  // Parse a date string into a JS Date (handles DD-Mon-YY, DD/MM/YYYY, YYYY-MM-DD, etc.)
+  const MONTHS = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11 };
+  function parseDate(s) {
+    if (!s) return null;
+    s = s.trim();
+    // DD-Mon-YY or DD-Mon-YYYY  e.g. "25-Apr-26" or "25-Apr-2026"
+    let m = s.match(/^(\d{1,2})[-\/\s]([A-Za-z]{3})[-\/\s](\d{2,4})$/);
+    if (m) {
+      const mo = MONTHS[m[2].toLowerCase()];
+      if (mo !== undefined) {
+        let yr = parseInt(m[3]);
+        if (yr < 100) yr += 2000;
+        return new Date(yr, mo, parseInt(m[1]));
+      }
+    }
+    // DD/MM/YYYY
+    m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) return new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
+    // YYYY-MM-DD
+    m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) return new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
+    // Try native parse as last resort
+    const d = new Date(s);
+    return isNaN(d) ? null : d;
+  }
+
+  // Format a JS Date as DD-MMM-YY
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function fmtDate(d) {
+    if (!d) return '';
+    const dd  = String(d.getDate()).padStart(2,'0');
+    const mon = MON[d.getMonth()];
+    const yy  = String(d.getFullYear()).slice(-2);
+    return `${dd}-${mon}-${yy}`;
+  }
+
+  // Sortable key for a date (YYYYMMDD integer)
+  function dateKey(d) {
+    if (!d) return 0;
+    return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+  }
+
   // Map raw rows → game objects
   const MD_GAMES = raw.map(r => {
     const home = fc(r,'Home Team');
     const away = fc(r,'Away Team');
+    const rawDate = fc(r,'Date');
+    const parsed  = parseDate(rawDate);
     return {
-      date:     fc(r,'Date'),
+      dateRaw:  rawDate,
+      dateFmt:  parsed ? fmtDate(parsed) : rawDate,
+      dateObj:  parsed,
+      dateKey:  dateKey(parsed),
       div:      fc(r,'Division'),
       home,
       hConf:    fc(r,'H Conf'),
@@ -397,6 +453,49 @@ function renderMatchDay() {
       belHome:  /belmont fc/i.test(home),
     };
   });
+
+  // ── Build / update date selector ──
+  const dateSel = document.getElementById('md-date-sel');
+  const allDates = [...new Map(
+    MD_GAMES.filter(g => g.dateObj)
+      .sort((a,b) => a.dateKey - b.dateKey)
+      .map(g => [g.dateFmt, g])
+  ).values()].map(g => ({ fmt: g.dateFmt, key: g.dateKey, obj: g.dateObj }));
+
+  // Determine "most immediate" date: closest upcoming, or most recent past
+  const todayKey = dateKey(new Date());
+  let defaultDate = null;
+  if (allDates.length) {
+    const future = allDates.filter(d => d.key >= todayKey);
+    defaultDate = future.length ? future[0].fmt : allDates[allDates.length-1].fmt;
+  }
+
+  // Rebuild options, preserving current selection if valid
+  const curSel = dateSel ? dateSel.value : 'all';
+  const validFmts = new Set(allDates.map(d => d.fmt));
+  const selVal = (curSel !== 'all' && validFmts.has(curSel)) ? curSel : (defaultDate || 'all');
+
+  if (dateSel) {
+    dateSel.innerHTML = `<option value="all">All Dates</option>` +
+      allDates.map(d => `<option value="${d.fmt}"${d.fmt===selVal?' selected':''}>${d.fmt}</option>`).join('');
+  }
+
+  // Filter games by selected date
+  const filtered = selVal === 'all' ? MD_GAMES : MD_GAMES.filter(g => g.dateFmt === selVal);
+
+  // Update subtitle
+  const subtitle = document.getElementById('md-subtitle');
+  if (subtitle) {
+    if (selVal !== 'all') {
+      // Find the full weekday name for the selected date
+      const dateObj = allDates.find(d => d.fmt === selVal)?.obj;
+      const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      const dayName = dateObj ? days[dateObj.getDay()] : '';
+      subtitle.textContent = `${dayName ? dayName + ' · ' : ''}${selVal} · Belmont FC Home & Away`;
+    } else {
+      subtitle.textContent = 'All Dates · Belmont FC Home & Away';
+    }
+  }
 
   /* ── helpers ── */
   function confStyle(val) {
@@ -421,17 +520,17 @@ function renderMatchDay() {
   const tbody = document.getElementById('md-games-tbody');
   tbody.innerHTML = '';
 
-  if (!MD_GAMES.length) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No fixture data loaded yet — check your Google Sheet (gid: 1892133300)</td></tr>`;
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">${MD_GAMES.length ? 'No games for the selected date.' : 'No fixture data loaded yet — check your Google Sheet (gid: 1892133300)'}</td></tr>`;
   } else {
-    MD_GAMES.forEach((g, i) => {
+    filtered.forEach((g, i) => {
       const dc = mdDivColor(g.div);
       const tr = document.createElement('tr');
       tr.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s;${i%2===1?'background:rgba(255,255,255,0.02)':''}`;
       tr.onmouseover = () => tr.style.background = 'rgba(255,255,255,0.04)';
       tr.onmouseout  = () => tr.style.background = i%2===1 ? 'rgba(255,255,255,0.02)' : '';
       tr.innerHTML = `
-        <td style="padding:10px 14px;font-size:0.75rem;color:var(--muted);white-space:nowrap;">${g.date}</td>
+        <td style="padding:10px 14px;font-size:0.75rem;color:var(--muted);white-space:nowrap;">${g.dateFmt}</td>
         <td style="padding:10px 14px;white-space:nowrap;"><span style="font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:4px;background:${dc}22;color:${dc};border:1px solid ${dc}44;">${g.div}</span></td>
         ${teamCell(g.home, g.hConf)}
         ${teamCell(g.away, g.aConf)}
@@ -445,8 +544,8 @@ function renderMatchDay() {
   }
 
   /* ── Pitches Table ── */
-  // Only home games (Belmont FC is Home) that have a pitch assigned
-  const homeGames = MD_GAMES.filter(g => g.belHome && g.pitch).sort((a,b) => a.pitch.localeCompare(b.pitch));
+  // Only home games (Belmont FC is Home) that have a pitch assigned, filtered by date
+  const homeGames = filtered.filter(g => g.belHome && g.pitch).sort((a,b) => a.pitch.localeCompare(b.pitch));
   const pitches = [...new Set(homeGames.map(g => g.pitch))].sort();
 
   const pt = document.getElementById('md-pitches-table');
@@ -464,7 +563,7 @@ function renderMatchDay() {
     return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
   }
 
-  // Find earliest start and latest end across ALL home games
+  // Find earliest start and latest end across filtered home games
   let minStart = Infinity, maxEnd = 0;
   homeGames.forEach(g => {
     const s = timeToMins(g.ko);
@@ -473,13 +572,10 @@ function renderMatchDay() {
     const e = s + g.gameLen;
     if (e > maxEnd) maxEnd = e;
   });
-  // Fall back to 9:00–14:00 if no data
   if (!isFinite(minStart)) { minStart = 540; maxEnd = 840; }
-  // Round down to nearest 15 for start, up for end
   minStart = Math.floor(minStart / 15) * 15;
   maxEnd   = Math.ceil(maxEnd / 15) * 15;
 
-  // Build slot list (every 15 mins from minStart to maxEnd-1)
   const slots = [];
   for (let m = minStart; m < maxEnd; m += 15) slots.push(m);
 
@@ -488,12 +584,10 @@ function renderMatchDay() {
     return mins === null ? -1 : Math.round((mins - minStart) / 15);
   }
 
-  // Build grid maps — now keyed per pitch index
-  const startMap = {}; // `si-pi` → {game, span}
-  const bodyMap  = {}; // `body-si-pi` → true
+  const startMap = {};
+  const bodyMap  = {};
 
   pitches.forEach((p, pi) => {
-    // A pitch can have multiple games — collect all for that pitch
     const pGames = homeGames.filter(g => g.pitch === p);
     pGames.forEach(g => {
       const si = timeToIdx(g.ko);
@@ -504,10 +598,8 @@ function renderMatchDay() {
     });
   });
 
-  // thead — show game length in subheader per pitch
   const thStyle = `padding:11px 14px;text-align:center;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap;border-right:1px solid rgba(255,255,255,0.06);`;
 
-  // Collect per-pitch info for subheader
   const pitchInfo = {};
   pitches.forEach(p => {
     const pGames = homeGames.filter(g => g.pitch === p);
@@ -530,7 +622,6 @@ function renderMatchDay() {
   theadHtml += `<th style="${thStyle}font-size:0.55rem;color:var(--muted);"></th></tr></thead>`;
   pt.innerHTML = theadHtml;
 
-  // tbody
   const timeTd  = `style="padding:0 12px;height:28px;font-family:'Bebas Neue',sans-serif;font-size:0.85rem;color:var(--muted);background:#0b1a30;border-right:2px solid rgba(253,184,19,0.2);white-space:nowrap;vertical-align:middle;text-align:center;"`;
   const emptyTd = `style="height:28px;border-right:1px solid rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);"`;
 
