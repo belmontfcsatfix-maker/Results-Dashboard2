@@ -304,18 +304,9 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 <div style="padding:24px 20px 48px;">
 
   <!-- Page subtitle -->
-  <div style="margin-bottom:20px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-    <div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.06em;color:var(--yellow);">Match Day — Fixtures &amp; Pitches</div>
-      <div id="md-subtitle" style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:3px;">Belmont FC Home &amp; Away</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;color:var(--yellow);opacity:0.85;">Date</span>
-      <select id="md-date-sel" onchange="if(window._renderMatchDay) window._renderMatchDay()"
-        style="background:var(--blue2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.8rem;padding:6px 28px 6px 10px;border-radius:8px;outline:none;appearance:none;cursor:pointer;background-image:url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'9\' height=\'9\' fill=\'%238ba2c1\'%3E%3Cpath d=\'M0 3l4.5 4.5L9 3z\'/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center;">
-        <option value="all">All Dates</option>
-      </select>
-    </div>
+  <div style="margin-bottom:20px;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.06em;color:var(--yellow);">Match Day — Fixtures &amp; Pitches</div>
+    <div id="md-subtitle" style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:3px;">Belmont FC Home &amp; Away</div>
   </div>
 
   <!-- ── LEGEND ── -->
@@ -347,7 +338,16 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
   </div>
 
   <!-- ── PITCHES TABLE ── -->
-  <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--yellow);margin-bottom:10px;">Pitches — Belmont FC Home Games</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--yellow);">Pitches — Belmont FC Home Games</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;color:var(--yellow);opacity:0.85;">Date</span>
+      <select id="md-date-sel" onchange="if(window._renderMatchDay) window._renderMatchDay()"
+        style="background:var(--blue2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.8rem;padding:6px 28px 6px 10px;border-radius:8px;outline:none;appearance:none;cursor:pointer;background-image:url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'9\' height=\'9\' fill=\'%238ba2c1\'%3E%3Cpath d=\'M0 3l4.5 4.5L9 3z\'/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center;">
+        <option value="all">All Dates</option>
+      </select>
+    </div>
+  </div>
   <div style="border-radius:12px;border:1px solid var(--border);overflow-x:auto;background:var(--card);">
     <table id="md-pitches-table" style="border-collapse:collapse;min-width:600px;width:100%;"></table>
   </div>
@@ -480,22 +480,8 @@ function renderMatchDay() {
       allDates.map(d => `<option value="${d.fmt}"${d.fmt===selVal?' selected':''}>${d.fmt}</option>`).join('');
   }
 
-  // Filter games by selected date
+  // Filter games by selected date — only for the Pitches table
   const filtered = selVal === 'all' ? MD_GAMES : MD_GAMES.filter(g => g.dateFmt === selVal);
-
-  // Update subtitle
-  const subtitle = document.getElementById('md-subtitle');
-  if (subtitle) {
-    if (selVal !== 'all') {
-      // Find the full weekday name for the selected date
-      const dateObj = allDates.find(d => d.fmt === selVal)?.obj;
-      const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-      const dayName = dateObj ? days[dateObj.getDay()] : '';
-      subtitle.textContent = `${dayName ? dayName + ' · ' : ''}${selVal} · Belmont FC Home & Away`;
-    } else {
-      subtitle.textContent = 'All Dates · Belmont FC Home & Away';
-    }
-  }
 
   /* ── helpers ── */
   function confStyle(val) {
@@ -516,14 +502,14 @@ function renderMatchDay() {
     return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;color:#ffffff;${confStyle(conf)}">${name} <span style="opacity:0.8">${conf&&conf.toUpperCase()==='Y'?'✓':'✗'}</span></td>`;
   }
 
-  /* ── Games Table ── */
+  /* ── Games Table (always shows all games, unaffected by date filter) ── */
   const tbody = document.getElementById('md-games-tbody');
   tbody.innerHTML = '';
 
-  if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">${MD_GAMES.length ? 'No games for the selected date.' : 'No fixture data loaded yet — check your Google Sheet (gid: 1892133300)'}</td></tr>`;
+  if (!MD_GAMES.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No fixture data loaded yet — check your Google Sheet (gid: 1892133300)</td></tr>`;
   } else {
-    filtered.forEach((g, i) => {
+    MD_GAMES.forEach((g, i) => {
       const dc = mdDivColor(g.div);
       const tr = document.createElement('tr');
       tr.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s;${i%2===1?'background:rgba(255,255,255,0.02)':''}`;
