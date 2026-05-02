@@ -348,6 +348,9 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
       </select>
     </div>
   </div>
+  <!-- ── OVERLAP WARNING ── -->
+  <div id="md-overlap-warning" style="display:none;margin-bottom:12px;padding:12px 16px;background:rgba(180,30,30,0.18);border:1px solid rgba(231,76,60,0.45);border-radius:10px;color:var(--text);"></div>
+
   <div style="border-radius:12px;border:1px solid var(--border);overflow-x:auto;background:var(--card);">
     <table id="md-pitches-table" style="border-collapse:collapse;min-width:600px;width:100%;"></table>
   </div>
@@ -572,6 +575,8 @@ function renderMatchDay() {
 
   const startMap = {};
   const bodyMap  = {};
+  const overlapSet = new Set(); // keys of game blocks that overlap
+  const overlapWarnings = []; // human-readable descriptions
 
   pitches.forEach((p, pi) => {
     const pGames = homeGames.filter(g => g.pitch === p);
@@ -582,7 +587,57 @@ function renderMatchDay() {
       startMap[`${si}-${pi}`] = { game: g, span };
       for (let i = 0; i < span; i++) bodyMap[`body-${si+i}-${pi}`] = true;
     });
+
+    // Detect overlaps on this pitch: compare every pair of games
+    for (let a = 0; a < pGames.length; a++) {
+      for (let b = a + 1; b < pGames.length; b++) {
+        const ga = pGames[a], gb = pGames[b];
+        const aStart = timeToMins(ga.ko), bStart = timeToMins(gb.ko);
+        if (aStart === null || bStart === null) continue;
+        const aEnd = aStart + ga.gameLen, bEnd = bStart + gb.gameLen;
+        // Overlap if intervals intersect (not merely touching)
+        if (aStart < bEnd && bStart < aEnd) {
+          const siA = timeToIdx(ga.ko), siB = timeToIdx(gb.ko);
+          overlapSet.add(`${siA}-${pi}`);
+          overlapSet.add(`${siB}-${pi}`);
+          overlapWarnings.push({
+            pitch: p,
+            gameA: ga,
+            gameB: gb,
+            aStart, aEnd, bStart, bEnd
+          });
+        }
+      }
+    }
   });
+
+  // Render warning banner
+  const warningEl = document.getElementById('md-overlap-warning');
+  if (warningEl) {
+    if (overlapWarnings.length) {
+      const items = overlapWarnings.map(w => {
+        const fmt = m => `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
+        return `<li style="margin:4px 0 4px 0;">
+          <span style="color:var(--yellow);font-weight:700;">${w.pitch}</span>
+          — <span style="color:#ff8080;">${w.gameA.div}</span> (${fmt(w.aStart)}–${fmt(w.aEnd)})
+          overlaps with <span style="color:#ff8080;">${w.gameB.div}</span> (${fmt(w.bStart)}–${fmt(w.bEnd)})
+          · <span style="color:var(--muted);font-size:0.7rem;">${w.gameA.home} vs ${w.gameA.away} &amp; ${w.gameB.home} vs ${w.gameB.away}</span>
+        </li>`;
+      }).join('');
+      warningEl.style.display = 'block';
+      warningEl.innerHTML = `
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <span style="font-size:1.2rem;line-height:1.3;">⚠️</span>
+          <div>
+            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#ff6b6b;margin-bottom:4px;">Pitch Conflict${overlapWarnings.length > 1 ? 's' : ''} Detected</div>
+            <ul style="list-style:none;padding:0;margin:0;font-size:0.78rem;line-height:1.5;">${items}</ul>
+          </div>
+        </div>`;
+    } else {
+      warningEl.style.display = 'none';
+      warningEl.innerHTML = '';
+    }
+  }
 
   const thStyle = `padding:11px 14px;text-align:center;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap;border-right:1px solid rgba(255,255,255,0.06);`;
 
@@ -623,10 +678,24 @@ function renderMatchDay() {
         const { game, span } = startMap[sk];
         const isShort = span <= 3;
         const dc = mdDivColor(game.div);
-        cells += `<td rowspan="${span}" style="padding:3px;vertical-align:top;border-right:1px solid rgba(253,184,19,0.15);background:rgba(22,47,82,0.9);">
-          <div style="background:linear-gradient(135deg,var(--blue2) 0%,#1a4a80 100%);border:1px solid rgba(253,184,19,0.25);border-radius:6px;padding:5px 7px;height:calc(${span}*28px - 8px);min-height:${span*28-8}px;display:flex;flex-direction:column;justify-content:center;gap:2px;">
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:var(--yellow);line-height:1;">${game.ko}</div>
-            <div style="font-size:0.65rem;font-weight:700;color:${dc};opacity:0.9;">${game.div}</div>
+        const isOverlap = overlapSet.has(sk);
+        const blockBg   = isOverlap
+          ? 'linear-gradient(135deg,#5a0a0a 0%,#8b1a1a 100%)'
+          : 'linear-gradient(135deg,var(--blue2) 0%,#1a4a80 100%)';
+        const blockBorder = isOverlap
+          ? 'rgba(231,76,60,0.7)'
+          : 'rgba(253,184,19,0.25)';
+        const cellBg = isOverlap
+          ? 'rgba(180,30,30,0.25)'
+          : 'rgba(22,47,82,0.9)';
+        const cellBorder = isOverlap
+          ? 'rgba(231,76,60,0.4)'
+          : 'rgba(253,184,19,0.15)';
+        cells += `<td rowspan="${span}" style="padding:3px;vertical-align:top;border-right:1px solid ${cellBorder};background:${cellBg};">
+          <div style="background:${blockBg};border:1px solid ${blockBorder};border-radius:6px;padding:5px 7px;height:calc(${span}*28px - 8px);min-height:${span*28-8}px;display:flex;flex-direction:column;justify-content:center;gap:2px;${isOverlap?'box-shadow:0 0 8px rgba(231,76,60,0.4);':''}">
+            ${isOverlap ? `<div style="font-size:0.55rem;font-weight:700;color:#ff6b6b;text-transform:uppercase;letter-spacing:0.08em;line-height:1;">⚠ Conflict</div>` : ''}
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:${isOverlap?'#ffaaaa':'var(--yellow)'};line-height:1;">${game.ko}</div>
+            <div style="font-size:0.65rem;font-weight:700;color:${isOverlap?'#ff8080':dc};opacity:0.9;">${game.div}</div>
             ${!isShort ? `<div style="font-size:0.72rem;font-weight:600;${/belmont fc/i.test(game.away)?'color:var(--yellow);':'color:#ffffff;'}">${game.away}</div>` : ''}
             ${game.ref && !isShort ? `<div style="font-size:0.62rem;color:var(--muted);margin-top:1px;">Ref: ${game.ref}</div>` : ''}
           </div>
