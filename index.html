@@ -371,9 +371,14 @@ function confStyle(yes) {
     ? 'background:rgba(39,174,96,0.18);color:#2ecc71;border-left:2px solid #27ae60;'
     : 'background:rgba(192,57,43,0.18);color:#e74c3c;border-left:2px solid #c0392b;';
 }
+function highlightBFC(name) {
+  return /belmont fc/i.test(name)
+    ? `<span style="color:var(--yellow);font-weight:800;">${name}</span>`
+    : name;
+}
 function teamCell(name, conf) {
   const yes = conf === 'Y';
-  return `<td style="padding:10px 14px;text-align:center;font-weight:600;font-size:0.84rem;${confStyle(yes)}">${name} <span style="font-size:0.7rem;opacity:0.8">${yes?'✓':'✗'}</span></td>`;
+  return `<td style="padding:10px 14px;text-align:center;font-weight:600;font-size:0.84rem;${confStyle(yes)}">${highlightBFC(name)} <span style="font-size:0.7rem;opacity:0.8">${yes?'✓':'✗'}</span></td>`;
 }
 function refCell(name, conf) {
   if (!name) return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;font-style:italic;background:rgba(192,57,43,0.18);color:#e74c3c;border-left:2px solid #c0392b;">TBC ✗</td>`;
@@ -474,7 +479,7 @@ slots.forEach((slot,si)=>{
         <div style="background:linear-gradient(135deg,var(--blue2) 0%,#1a4a80 100%);border:1px solid rgba(253,184,19,0.25);border-radius:6px;padding:5px 7px;height:calc(${span}*28px - 8px);min-height:${span*28-8}px;display:flex;flex-direction:column;justify-content:center;gap:2px;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:var(--yellow);line-height:1;">${game.ko}</div>
           <div style="font-size:0.65rem;font-weight:700;color:${game.divColor||'#8ba2c1'};opacity:0.9;">${game.div}</div>
-          ${!isShort?`<div style="font-size:0.72rem;color:var(--text);font-weight:600;">${game.away}</div>`:''}
+          ${!isShort?`<div style="font-size:0.72rem;font-weight:600;${/belmont fc/i.test(game.away)?'color:var(--yellow);':'color:var(--text);'}">${game.away}</div>`:''}
           ${game.ref&&!isShort?`<div style="font-size:0.62rem;color:var(--muted);margin-top:1px;">Ref: ${game.ref}</div>`:''}
         </div>
       </td>`;
@@ -1855,4 +1860,3 @@ function renderPerfTable() {
 
 </body>
 </html>
-
