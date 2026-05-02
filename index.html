@@ -517,11 +517,11 @@ function renderMatchDay() {
 
   let theadHtml = `<thead>
     <tr style="background:var(--blue2);">
-      <th style="${thStyle}color:var(--muted);">Time →</th>`;
+      <th style="${thStyle}color:var(--muted);">Pitch</th>`;
   pitches.forEach(p => {
-    theadHtml += `<th style="${thStyle}color:var(--yellow);">Pitch ${p}</th>`;
+    theadHtml += `<th style="${thStyle}color:var(--yellow);">${p}</th>`;
   });
-  theadHtml += `<th style="${thStyle}color:var(--muted);">← Time</th></tr>
+  theadHtml += `<th style="${thStyle}color:var(--muted);">Pitch</th></tr>
     <tr style="background:#0e2040;">
       <th style="${thStyle}color:var(--muted);font-size:0.55rem;">Slot</th>`;
   pitches.forEach(p => {
