@@ -349,152 +349,225 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 <script>
 /* ════════════════════════════════════════
    MATCH DAY TAB — DATA & RENDER
+   Driven entirely by FIXTURES_DATA loaded
+   from Google Sheets (gid 1892133300)
 ════════════════════════════════════════ */
-(function() {
 
-const MD_GAMES = [
-  { date:'25-Apr', div:'13.2 Boys Sat', divColor:'#7c6fcd', home:'Belmont FC',           hConf:'Y', away:'Rathcoole FC',           aConf:'',  ko:'9:00',  ref:'Amine Malek', refConf:'',  comments:'', pitch:'A', belHome:true  },
-  { date:'25-Apr', div:'13.7 Boys Sat', divColor:'#7c6fcd', home:'Finglas United FC',    hConf:'Y', away:'Belmont FC',             aConf:'',  ko:'10:00', ref:'',            refConf:'',  comments:'', pitch:'B', belHome:false },
-  { date:'25-Apr', div:'13.8 Boys Sat', divColor:'#7c6fcd', home:'Belmont FC',           hConf:'Y', away:'Hartstown / Huntstown',  aConf:'',  ko:'11:00', ref:'Amine Malek', refConf:'Y', comments:'', pitch:'C', belHome:true  },
-  { date:'25-Apr', div:'12.3 Boys Sat', divColor:'#e07b39', home:'Belmont FC',           hConf:'Y', away:'Terenure Rangers FC',    aConf:'',  ko:'13:00', ref:'Amine Malek', refConf:'Y', comments:'', pitch:'D', belHome:true  },
-  { date:'25-Apr', div:'12.6 Boys Sat', divColor:'#e07b39', home:'Sporting Greystones',  hConf:'Y', away:'Belmont FC',             aConf:'Y', ko:'12:30', ref:'Ruben Kenny',  refConf:'',  comments:'', pitch:'A', belHome:false },
-  { date:'25-Apr', div:'12.8 Boys Sat', divColor:'#e07b39', home:'Greenhills Boys FC',   hConf:'Y', away:'Belmont FC',             aConf:'Y', ko:'11:15', ref:'',            refConf:'',  comments:'', pitch:'B', belHome:false },
-  { date:'25-Apr', div:'11.6 Boys Sat', divColor:'#5b9bd5', home:'Granada FC',           hConf:'Y', away:'Belmont FC',             aConf:'',  ko:'12:00', ref:'',            refConf:'',  comments:'', pitch:'C', belHome:false },
-  { date:'25-Apr', div:'11.7 Boys Sat', divColor:'#5b9bd5', home:'St Mochtas FC',        hConf:'',  away:'Belmont FC',             aConf:'Y', ko:'9:45',  ref:'',            refConf:'',  comments:'', pitch:'D', belHome:false },
-  { date:'25-Apr', div:'11.9 Boys Sat', divColor:'#5b9bd5', home:'Belmont FC',           hConf:'',  away:'Dalkey United FC',       aConf:'Y', ko:'11:15', ref:'',            refConf:'',  comments:'', pitch:'E', belHome:true  },
-  { date:'25-Apr', div:'10.4 Boys Sat', divColor:'#4db8b8', home:'Ardmore Rovers FC',    hConf:'',  away:'Belmont FC',             aConf:'Y', ko:'10:00', ref:'',            refConf:'',  comments:'', pitch:'A', belHome:false },
-  { date:'25-Apr', div:'10.6 Boys Sat', divColor:'#4db8b8', home:'Mt Merrion Youths FC', hConf:'',  away:'Belmont FC',             aConf:'',  ko:'12:00', ref:'',            refConf:'',  comments:'', pitch:'D', belHome:false },
-];
-
-/* ── helpers ── */
-function confStyle(yes) {
-  return yes
-    ? 'background:rgba(39,174,96,0.18);color:#2ecc71;border-left:2px solid #27ae60;'
-    : 'background:rgba(192,57,43,0.18);color:#e74c3c;border-left:2px solid #c0392b;';
-}
-function highlightBFC(name) {
-  return /belmont fc/i.test(name)
-    ? `<span style="color:var(--yellow);font-weight:800;">${name}</span>`
-    : `<span style="color:#ffffff;">${name}</span>`;
-}
-function teamCell(name, conf) {
-  const yes = conf === 'Y';
-  return `<td style="padding:10px 14px;text-align:center;font-weight:600;font-size:0.84rem;${confStyle(yes)}">${highlightBFC(name)} <span style="font-size:0.7rem;opacity:0.8">${yes?'✓':'✗'}</span></td>`;
-}
-function refCell(name, conf) {
-  if (!name) return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;"></td>`;
-  const yes = conf === 'Y';
-  return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;color:#ffffff;${confStyle(yes)}">${name} <span style="opacity:0.8">${yes?'✓':'✗'}</span></td>`;
+// Division colour palette (non-traffic-light)
+const MD_DIV_PALETTE = ['#7c6fcd','#e07b39','#5b9bd5','#4db8b8','#c76eb0','#6fad7c','#d4a843','#6fa8d4'];
+const _mdDivColorMap = {};
+let _mdDivColorIdx = 0;
+function mdDivColor(div) {
+  if (!_mdDivColorMap[div]) {
+    _mdDivColorMap[div] = MD_DIV_PALETTE[_mdDivColorIdx % MD_DIV_PALETTE.length];
+    _mdDivColorIdx++;
+  }
+  return _mdDivColorMap[div];
 }
 
-/* ── Games Table ── */
-const tbody = document.getElementById('md-games-tbody');
-MD_GAMES.forEach((g, i) => {
-  const tr = document.createElement('tr');
-  tr.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s;${i%2===1?'background:rgba(255,255,255,0.02)':''}`;
-  tr.onmouseover = () => tr.style.background = 'rgba(255,255,255,0.04)';
-  tr.onmouseout  = () => tr.style.background = i%2===1 ? 'rgba(255,255,255,0.02)' : '';
-  tr.innerHTML = `
-    <td style="padding:10px 14px;font-size:0.75rem;color:var(--muted);white-space:nowrap;">${g.date}</td>
-    <td style="padding:10px 14px;white-space:nowrap;"><span style="font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:4px;background:${g.divColor}22;color:${g.divColor};border:1px solid ${g.divColor}44;">${g.div}</span></td>
-    ${teamCell(g.home, g.hConf)}
-    ${teamCell(g.away, g.aConf)}
-    <td style="padding:10px 14px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--yellow);">${g.ko}</td>
-    ${refCell(g.ref, g.refConf)}
-    <td style="padding:10px 14px;text-align:center;font-size:0.75rem;color:var(--muted);font-style:italic;">${g.comments||'—'}</td>
-    <td style="padding:10px 14px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#fdb813;background:rgba(253,184,19,0.07);">${g.pitch}</td>
-  `;
-  tbody.appendChild(tr);
-});
+function renderMatchDay() {
+  // Pull from the globally-loaded FIXTURES_DATA
+  const raw = (typeof FIXTURES_DATA !== 'undefined') ? FIXTURES_DATA : [];
 
-/* ── Pitches Table ── */
-const pitchMeta = {
-  A: { label:'Pitch A', slot:'90 mins', age:'U13' },
-  B: { label:'Pitch B', slot:'75 mins', age:'U10, U11' },
-  C: { label:'Pitch C', slot:'90 mins', age:'U12/U16/U18' },
-  D: { label:'Pitch D', slot:'75 mins', age:'U08, U09' },
-  E: { label:'Pitch E', slot:'60 mins', age:'U08–U11' },
-};
-const slotDuration = { A:90, B:75, C:90, D:75, E:60 };
-
-function timeSlots() {
-  const s=[];
-  for(let h=9;h<=14;h++) for(let m=0;m<60;m+=15) { s.push(`${h}:${String(m).padStart(2,'0')}`); if(h===14&&m===0)break; }
-  return s;
-}
-const slots = timeSlots();
-
-function timeToIdx(t) { const [h,m]=t.split(':').map(Number); return (h-9)*4+m/15; }
-
-const homeGames = MD_GAMES.filter(g=>g.belHome).sort((a,b)=>a.pitch.localeCompare(b.pitch));
-const pitches = [...new Set(homeGames.map(g=>g.pitch))].sort();
-
-const pt = document.getElementById('md-pitches-table');
-
-// Build grid
-const startMap={}; // `si-pi` → {game,span}
-const bodyMap={};  // `body-si-pi` → true
-pitches.forEach((p,pi)=>{
-  const g=homeGames.find(x=>x.pitch===p);
-  if(!g) return;
-  const si=timeToIdx(g.ko);
-  const span=Math.ceil((slotDuration[p]||75)/15);
-  startMap[`${si}-${pi}`]={game:g,span};
-  for(let i=0;i<span;i++) bodyMap[`body-${si+i}-${pi}`]=true;
-});
-
-// thead
-const thStyle = `padding:11px 14px;text-align:center;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap;border-right:1px solid rgba(255,255,255,0.06);`;
-let thead = `<thead>
-  <tr style="background:var(--blue2);">
-    <th style="${thStyle}color:var(--muted);">Time →</th>`;
-pitches.forEach(p=>{
-  const m=pitchMeta[p]||{label:`Pitch ${p}`};
-  thead+=`<th style="${thStyle}color:var(--yellow);">${m.label}</th>`;
-});
-thead+=`<th style="${thStyle}color:var(--muted);">← Time</th></tr>
-  <tr style="background:#0e2040;">
-    <th style="${thStyle}color:var(--muted);font-size:0.55rem;">Slot / Age</th>`;
-pitches.forEach(p=>{
-  const m=pitchMeta[p]||{};
-  thead+=`<th style="${thStyle}color:var(--muted);font-size:0.6rem;">${m.slot||''}<br><span style="color:#506a8a;font-size:0.55rem;">${m.age||''}</span></th>`;
-});
-thead+=`<th style="${thStyle}font-size:0.55rem;color:var(--muted);"></th></tr></thead>`;
-pt.innerHTML = thead;
-
-// tbody
-const timeTd = `style="padding:0 12px;height:28px;font-family:'Bebas Neue',sans-serif;font-size:0.85rem;color:var(--muted);background:#0b1a30;border-right:2px solid rgba(253,184,19,0.2);white-space:nowrap;vertical-align:middle;text-align:center;"`;
-const emptyTd = `style="height:28px;border-right:1px solid rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);"`;
-
-const tbodyEl = document.createElement('tbody');
-slots.forEach((slot,si)=>{
-  const tr = document.createElement('tr');
-  tr.style.borderBottom = '1px solid rgba(255,255,255,0.03)';
-  let cells = `<td ${timeTd}>${slot}</td>`;
-  pitches.forEach((p,pi)=>{
-    const sk=`${si}-${pi}`, bk=`body-${si}-${pi}`;
-    if(startMap[sk]){
-      const {game,span}=startMap[sk];
-      const isShort=span<=3;
-      cells+=`<td rowspan="${span}" style="padding:3px;vertical-align:top;border-right:1px solid rgba(253,184,19,0.15);background:rgba(22,47,82,0.9);">
-        <div style="background:linear-gradient(135deg,var(--blue2) 0%,#1a4a80 100%);border:1px solid rgba(253,184,19,0.25);border-radius:6px;padding:5px 7px;height:calc(${span}*28px - 8px);min-height:${span*28-8}px;display:flex;flex-direction:column;justify-content:center;gap:2px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:var(--yellow);line-height:1;">${game.ko}</div>
-          <div style="font-size:0.65rem;font-weight:700;color:${game.divColor||'#8ba2c1'};opacity:0.9;">${game.div}</div>
-          ${!isShort?`<div style="font-size:0.72rem;font-weight:600;${/belmont fc/i.test(game.away)?'color:var(--yellow);':'color:var(--text);'}">${game.away}</div>`:''}
-          ${game.ref&&!isShort?`<div style="font-size:0.62rem;color:var(--muted);margin-top:1px;">Ref: ${game.ref}</div>`:''}
-        </div>
-      </td>`;
-    } else if(!bodyMap[bk]) {
-      cells+=`<td ${emptyTd}></td>`;
+  // Helper: find a column value case-insensitively
+  function fc(row, ...names) {
+    for (const n of names) {
+      const key = Object.keys(row).find(k => k.trim().toLowerCase() === n.trim().toLowerCase());
+      if (key !== undefined) return (row[key] || '').toString().trim();
     }
-  });
-  cells+=`<td ${timeTd}>${slot}</td>`;
-  tr.innerHTML=cells;
-  tbodyEl.appendChild(tr);
-});
-pt.appendChild(tbodyEl);
+    return '';
+  }
 
-})(); // end IIFE
+  // Map raw rows → game objects
+  const MD_GAMES = raw.map(r => {
+    const home = fc(r,'Home Team');
+    const away = fc(r,'Away Team');
+    return {
+      date:     fc(r,'Date'),
+      div:      fc(r,'Division'),
+      home,
+      hConf:    fc(r,'H Conf'),
+      away,
+      aConf:    fc(r,'A Conf'),
+      ko:       fc(r,'Kick Off'),
+      ref:      fc(r,'Referee'),
+      refConf:  fc(r,'Ref Conf'),
+      comments: fc(r,'Comments'),
+      pitch:    fc(r,'Pitch'),
+      gameLen:  parseInt(fc(r,'Game Length')) || 75,
+      belHome:  /belmont fc/i.test(home),
+    };
+  });
+
+  /* ── helpers ── */
+  function confStyle(val) {
+    return val && val.toUpperCase() === 'Y'
+      ? 'background:rgba(39,174,96,0.18);color:#2ecc71;border-left:2px solid #27ae60;'
+      : 'background:rgba(192,57,43,0.18);color:#e74c3c;border-left:2px solid #c0392b;';
+  }
+  function highlightBFC(name) {
+    return /belmont fc/i.test(name)
+      ? `<span style="color:var(--yellow);font-weight:800;">${name}</span>`
+      : `<span style="color:#ffffff;">${name}</span>`;
+  }
+  function teamCell(name, conf) {
+    return `<td style="padding:10px 14px;text-align:center;font-weight:600;font-size:0.84rem;${confStyle(conf)}">${highlightBFC(name)} <span style="font-size:0.7rem;opacity:0.8">${conf&&conf.toUpperCase()==='Y'?'✓':'✗'}</span></td>`;
+  }
+  function refCell(name, conf) {
+    if (!name) return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;"></td>`;
+    return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;color:#ffffff;${confStyle(conf)}">${name} <span style="opacity:0.8">${conf&&conf.toUpperCase()==='Y'?'✓':'✗'}</span></td>`;
+  }
+
+  /* ── Games Table ── */
+  const tbody = document.getElementById('md-games-tbody');
+  tbody.innerHTML = '';
+
+  if (!MD_GAMES.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No fixture data loaded yet — check your Google Sheet (gid: 1892133300)</td></tr>`;
+  } else {
+    MD_GAMES.forEach((g, i) => {
+      const dc = mdDivColor(g.div);
+      const tr = document.createElement('tr');
+      tr.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s;${i%2===1?'background:rgba(255,255,255,0.02)':''}`;
+      tr.onmouseover = () => tr.style.background = 'rgba(255,255,255,0.04)';
+      tr.onmouseout  = () => tr.style.background = i%2===1 ? 'rgba(255,255,255,0.02)' : '';
+      tr.innerHTML = `
+        <td style="padding:10px 14px;font-size:0.75rem;color:var(--muted);white-space:nowrap;">${g.date}</td>
+        <td style="padding:10px 14px;white-space:nowrap;"><span style="font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:4px;background:${dc}22;color:${dc};border:1px solid ${dc}44;">${g.div}</span></td>
+        ${teamCell(g.home, g.hConf)}
+        ${teamCell(g.away, g.aConf)}
+        <td style="padding:10px 14px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--yellow);">${g.ko}</td>
+        ${refCell(g.ref, g.refConf)}
+        <td style="padding:10px 14px;text-align:center;font-size:0.75rem;color:var(--muted);font-style:italic;">${g.comments||'—'}</td>
+        <td style="padding:10px 14px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#fdb813;background:rgba(253,184,19,0.07);">${g.pitch}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ── Pitches Table ── */
+  // Only home games (Belmont FC is Home) that have a pitch assigned
+  const homeGames = MD_GAMES.filter(g => g.belHome && g.pitch).sort((a,b) => a.pitch.localeCompare(b.pitch));
+  const pitches = [...new Set(homeGames.map(g => g.pitch))].sort();
+
+  const pt = document.getElementById('md-pitches-table');
+  pt.innerHTML = '';
+
+  if (!pitches.length) return;
+
+  // Determine time range from actual game data (rounded to nearest 15 min)
+  function timeToMins(t) {
+    if (!t) return null;
+    const parts = t.split(':').map(Number);
+    return parts[0] * 60 + (parts[1] || 0);
+  }
+  function minsToLabel(m) {
+    return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
+  }
+
+  // Find earliest start and latest end across ALL home games
+  let minStart = Infinity, maxEnd = 0;
+  homeGames.forEach(g => {
+    const s = timeToMins(g.ko);
+    if (s === null) return;
+    if (s < minStart) minStart = s;
+    const e = s + g.gameLen;
+    if (e > maxEnd) maxEnd = e;
+  });
+  // Fall back to 9:00–14:00 if no data
+  if (!isFinite(minStart)) { minStart = 540; maxEnd = 840; }
+  // Round down to nearest 15 for start, up for end
+  minStart = Math.floor(minStart / 15) * 15;
+  maxEnd   = Math.ceil(maxEnd / 15) * 15;
+
+  // Build slot list (every 15 mins from minStart to maxEnd-1)
+  const slots = [];
+  for (let m = minStart; m < maxEnd; m += 15) slots.push(m);
+
+  function timeToIdx(t) {
+    const mins = timeToMins(t);
+    return mins === null ? -1 : Math.round((mins - minStart) / 15);
+  }
+
+  // Build grid maps — now keyed per pitch index
+  const startMap = {}; // `si-pi` → {game, span}
+  const bodyMap  = {}; // `body-si-pi` → true
+
+  pitches.forEach((p, pi) => {
+    // A pitch can have multiple games — collect all for that pitch
+    const pGames = homeGames.filter(g => g.pitch === p);
+    pGames.forEach(g => {
+      const si = timeToIdx(g.ko);
+      if (si < 0) return;
+      const span = Math.ceil(g.gameLen / 15);
+      startMap[`${si}-${pi}`] = { game: g, span };
+      for (let i = 0; i < span; i++) bodyMap[`body-${si+i}-${pi}`] = true;
+    });
+  });
+
+  // thead — show game length in subheader per pitch
+  const thStyle = `padding:11px 14px;text-align:center;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap;border-right:1px solid rgba(255,255,255,0.06);`;
+
+  // Collect per-pitch info for subheader
+  const pitchInfo = {};
+  pitches.forEach(p => {
+    const pGames = homeGames.filter(g => g.pitch === p);
+    const lens = [...new Set(pGames.map(g => g.gameLen).filter(Boolean))];
+    pitchInfo[p] = lens.length === 1 ? `${lens[0]} mins` : lens.map(l=>`${l}m`).join('/');
+  });
+
+  let theadHtml = `<thead>
+    <tr style="background:var(--blue2);">
+      <th style="${thStyle}color:var(--muted);">Time →</th>`;
+  pitches.forEach(p => {
+    theadHtml += `<th style="${thStyle}color:var(--yellow);">Pitch ${p}</th>`;
+  });
+  theadHtml += `<th style="${thStyle}color:var(--muted);">← Time</th></tr>
+    <tr style="background:#0e2040;">
+      <th style="${thStyle}color:var(--muted);font-size:0.55rem;">Slot</th>`;
+  pitches.forEach(p => {
+    theadHtml += `<th style="${thStyle}color:var(--muted);font-size:0.6rem;">${pitchInfo[p]||''}</th>`;
+  });
+  theadHtml += `<th style="${thStyle}font-size:0.55rem;color:var(--muted);"></th></tr></thead>`;
+  pt.innerHTML = theadHtml;
+
+  // tbody
+  const timeTd  = `style="padding:0 12px;height:28px;font-family:'Bebas Neue',sans-serif;font-size:0.85rem;color:var(--muted);background:#0b1a30;border-right:2px solid rgba(253,184,19,0.2);white-space:nowrap;vertical-align:middle;text-align:center;"`;
+  const emptyTd = `style="height:28px;border-right:1px solid rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);"`;
+
+  const tbodyEl = document.createElement('tbody');
+  slots.forEach((slotMins, si) => {
+    const label = minsToLabel(slotMins);
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid rgba(255,255,255,0.03)';
+    let cells = `<td ${timeTd}>${label}</td>`;
+    pitches.forEach((p, pi) => {
+      const sk = `${si}-${pi}`, bk = `body-${si}-${pi}`;
+      if (startMap[sk]) {
+        const { game, span } = startMap[sk];
+        const isShort = span <= 3;
+        const dc = mdDivColor(game.div);
+        cells += `<td rowspan="${span}" style="padding:3px;vertical-align:top;border-right:1px solid rgba(253,184,19,0.15);background:rgba(22,47,82,0.9);">
+          <div style="background:linear-gradient(135deg,var(--blue2) 0%,#1a4a80 100%);border:1px solid rgba(253,184,19,0.25);border-radius:6px;padding:5px 7px;height:calc(${span}*28px - 8px);min-height:${span*28-8}px;display:flex;flex-direction:column;justify-content:center;gap:2px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:var(--yellow);line-height:1;">${game.ko}</div>
+            <div style="font-size:0.65rem;font-weight:700;color:${dc};opacity:0.9;">${game.div}</div>
+            ${!isShort ? `<div style="font-size:0.72rem;font-weight:600;${/belmont fc/i.test(game.away)?'color:var(--yellow);':'color:#ffffff;'}">${game.away}</div>` : ''}
+            ${game.ref && !isShort ? `<div style="font-size:0.62rem;color:var(--muted);margin-top:1px;">Ref: ${game.ref}</div>` : ''}
+          </div>
+        </td>`;
+      } else if (!bodyMap[bk]) {
+        cells += `<td ${emptyTd}></td>`;
+      }
+    });
+    cells += `<td ${timeTd}>${label}</td>`;
+    tr.innerHTML = cells;
+    tbodyEl.appendChild(tr);
+  });
+  pt.appendChild(tbodyEl);
+}
+
+// Called after FIXTURES_DATA is populated by loadData()
+window._renderMatchDay = renderMatchDay;
 </script>
 </div>
 
@@ -658,6 +731,7 @@ async function loadData() {
       { date:'1-Jan-99', date_sort:'1999-01-01', division_raw:'x.xx', home:'Belmont FC', h_goals:9, a_goals:9, away:'Test', referee:'Test', location:'', tournament:'League', played:'Y', reason:'' }
     ];
     initDashboard();
+    if (typeof window._renderMatchDay === 'function') window._renderMatchDay();
     return;
   }
 
@@ -681,6 +755,7 @@ async function loadData() {
   FIXTURES_DATA = rows3 || [];
   initDashboard();
   renderFixturesTab();
+  if (typeof window._renderMatchDay === 'function') window._renderMatchDay();
 }
 
 loadData();
@@ -1094,6 +1169,7 @@ function switchTab(tab, btn) {
   if (tab === 'insights') renderInsights();
   if (tab === 'activity') renderActivity();
   if (tab === 'performance') { rebuildPerfDropdowns(); renderPerfTable(); }
+  if (tab === 'match-day' && typeof window._renderMatchDay === 'function') window._renderMatchDay();
 }
 
 /* ════════════════════════════════
