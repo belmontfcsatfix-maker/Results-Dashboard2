@@ -294,6 +294,7 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 <div class="tab-bar">
   <button class="tab-btn active" onclick="switchTab('match-day',this)">📋 Match Day</button>
   <button class="tab-btn" onclick="switchTab('fixtures',this)">Fixtures</button>
+  <button class="tab-btn" onclick="switchTab('upcoming',this)">📅 Upcoming</button>
   <button class="tab-btn" onclick="switchTab('insights',this)">Season Insights</button>
   <button class="tab-btn" onclick="switchTab('performance',this)">Teams Performance</button>
   <button class="tab-btn" onclick="switchTab('activity',this)">Teams Activity</button>
@@ -352,17 +353,17 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 (function() {
 
 const MD_GAMES = [
-  { date:'25-Apr', div:'13.2 Boys Sat', divColor:'#27ae60', home:'Belmont FC',           hConf:'Y', away:'Rathcoole FC',           aConf:'',  ko:'9:00',  ref:'Amine Malek', refConf:'',  comments:'', pitch:'A', belHome:true  },
-  { date:'25-Apr', div:'13.7 Boys Sat', divColor:'#27ae60', home:'Finglas United FC',    hConf:'Y', away:'Belmont FC',             aConf:'',  ko:'10:00', ref:'',            refConf:'',  comments:'', pitch:'B', belHome:false },
-  { date:'25-Apr', div:'13.8 Boys Sat', divColor:'#27ae60', home:'Belmont FC',           hConf:'Y', away:'Hartstown / Huntstown',  aConf:'',  ko:'11:00', ref:'Amine Malek', refConf:'Y', comments:'', pitch:'C', belHome:true  },
-  { date:'25-Apr', div:'12.3 Boys Sat', divColor:'#e74c3c', home:'Belmont FC',           hConf:'Y', away:'Terenure Rangers FC',    aConf:'',  ko:'13:00', ref:'Amine Malek', refConf:'Y', comments:'', pitch:'D', belHome:true  },
-  { date:'25-Apr', div:'12.6 Boys Sat', divColor:'#f39c12', home:'Sporting Greystones',  hConf:'Y', away:'Belmont FC',             aConf:'Y', ko:'12:30', ref:'Ruben Kenny',  refConf:'',  comments:'', pitch:'A', belHome:false },
-  { date:'25-Apr', div:'12.8 Boys Sat', divColor:'#f39c12', home:'Greenhills Boys FC',   hConf:'Y', away:'Belmont FC',             aConf:'Y', ko:'11:15', ref:'',            refConf:'',  comments:'', pitch:'B', belHome:false },
-  { date:'25-Apr', div:'11.6 Boys Sat', divColor:'#f1c40f', home:'Granada FC',           hConf:'Y', away:'Belmont FC',             aConf:'',  ko:'12:00', ref:'',            refConf:'',  comments:'', pitch:'C', belHome:false },
-  { date:'25-Apr', div:'11.7 Boys Sat', divColor:'#f1c40f', home:'St Mochtas FC',        hConf:'',  away:'Belmont FC',             aConf:'Y', ko:'9:45',  ref:'',            refConf:'',  comments:'', pitch:'D', belHome:false },
-  { date:'25-Apr', div:'11.9 Boys Sat', divColor:'#f1c40f', home:'Belmont FC',           hConf:'',  away:'Dalkey United FC',       aConf:'Y', ko:'11:15', ref:'',            refConf:'',  comments:'', pitch:'E', belHome:true  },
-  { date:'25-Apr', div:'10.4 Boys Sat', divColor:'#3498db', home:'Ardmore Rovers FC',    hConf:'',  away:'Belmont FC',             aConf:'Y', ko:'10:00', ref:'',            refConf:'',  comments:'', pitch:'A', belHome:false },
-  { date:'25-Apr', div:'10.6 Boys Sat', divColor:'#3498db', home:'Mt Merrion Youths FC', hConf:'',  away:'Belmont FC',             aConf:'',  ko:'12:00', ref:'',            refConf:'',  comments:'', pitch:'D', belHome:false },
+  { date:'25-Apr', div:'13.2 Boys Sat', divColor:'#7c6fcd', home:'Belmont FC',           hConf:'Y', away:'Rathcoole FC',           aConf:'',  ko:'9:00',  ref:'Amine Malek', refConf:'',  comments:'', pitch:'A', belHome:true  },
+  { date:'25-Apr', div:'13.7 Boys Sat', divColor:'#7c6fcd', home:'Finglas United FC',    hConf:'Y', away:'Belmont FC',             aConf:'',  ko:'10:00', ref:'',            refConf:'',  comments:'', pitch:'B', belHome:false },
+  { date:'25-Apr', div:'13.8 Boys Sat', divColor:'#7c6fcd', home:'Belmont FC',           hConf:'Y', away:'Hartstown / Huntstown',  aConf:'',  ko:'11:00', ref:'Amine Malek', refConf:'Y', comments:'', pitch:'C', belHome:true  },
+  { date:'25-Apr', div:'12.3 Boys Sat', divColor:'#e07b39', home:'Belmont FC',           hConf:'Y', away:'Terenure Rangers FC',    aConf:'',  ko:'13:00', ref:'Amine Malek', refConf:'Y', comments:'', pitch:'D', belHome:true  },
+  { date:'25-Apr', div:'12.6 Boys Sat', divColor:'#e07b39', home:'Sporting Greystones',  hConf:'Y', away:'Belmont FC',             aConf:'Y', ko:'12:30', ref:'Ruben Kenny',  refConf:'',  comments:'', pitch:'A', belHome:false },
+  { date:'25-Apr', div:'12.8 Boys Sat', divColor:'#e07b39', home:'Greenhills Boys FC',   hConf:'Y', away:'Belmont FC',             aConf:'Y', ko:'11:15', ref:'',            refConf:'',  comments:'', pitch:'B', belHome:false },
+  { date:'25-Apr', div:'11.6 Boys Sat', divColor:'#5b9bd5', home:'Granada FC',           hConf:'Y', away:'Belmont FC',             aConf:'',  ko:'12:00', ref:'',            refConf:'',  comments:'', pitch:'C', belHome:false },
+  { date:'25-Apr', div:'11.7 Boys Sat', divColor:'#5b9bd5', home:'St Mochtas FC',        hConf:'',  away:'Belmont FC',             aConf:'Y', ko:'9:45',  ref:'',            refConf:'',  comments:'', pitch:'D', belHome:false },
+  { date:'25-Apr', div:'11.9 Boys Sat', divColor:'#5b9bd5', home:'Belmont FC',           hConf:'',  away:'Dalkey United FC',       aConf:'Y', ko:'11:15', ref:'',            refConf:'',  comments:'', pitch:'E', belHome:true  },
+  { date:'25-Apr', div:'10.4 Boys Sat', divColor:'#4db8b8', home:'Ardmore Rovers FC',    hConf:'',  away:'Belmont FC',             aConf:'Y', ko:'10:00', ref:'',            refConf:'',  comments:'', pitch:'A', belHome:false },
+  { date:'25-Apr', div:'10.6 Boys Sat', divColor:'#4db8b8', home:'Mt Merrion Youths FC', hConf:'',  away:'Belmont FC',             aConf:'',  ko:'12:00', ref:'',            refConf:'',  comments:'', pitch:'D', belHome:false },
 ];
 
 /* ── helpers ── */
@@ -374,16 +375,16 @@ function confStyle(yes) {
 function highlightBFC(name) {
   return /belmont fc/i.test(name)
     ? `<span style="color:var(--yellow);font-weight:800;">${name}</span>`
-    : name;
+    : `<span style="color:#ffffff;">${name}</span>`;
 }
 function teamCell(name, conf) {
   const yes = conf === 'Y';
   return `<td style="padding:10px 14px;text-align:center;font-weight:600;font-size:0.84rem;${confStyle(yes)}">${highlightBFC(name)} <span style="font-size:0.7rem;opacity:0.8">${yes?'✓':'✗'}</span></td>`;
 }
 function refCell(name, conf) {
-  if (!name) return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;font-style:italic;background:rgba(192,57,43,0.18);color:#e74c3c;border-left:2px solid #c0392b;">TBC ✗</td>`;
+  if (!name) return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;"></td>`;
   const yes = conf === 'Y';
-  return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;${confStyle(yes)}">${name} <span style="opacity:0.8">${yes?'✓':'✗'}</span></td>`;
+  return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;color:#ffffff;${confStyle(yes)}">${name} <span style="opacity:0.8">${yes?'✓':'✗'}</span></td>`;
 }
 
 /* ── Games Table ── */
@@ -624,6 +625,7 @@ function showError(msg) {
 }
 
 let DATA = [];
+let FIXTURES_DATA = [];
 
 async function tryFetch(url) {
   try {
@@ -641,10 +643,12 @@ async function loadData() {
   const sheetId = '1Dej_HbjnZZb3Zrb86ExJ6Mg4XCb0PrT5_5BQOfyRJbM';
   const url1 = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0`;
   const url2 = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=827954`;
+  const url3 = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=1892133300`;
 
-  const [rows1, rows2] = await Promise.all([
+  const [rows1, rows2, rows3] = await Promise.all([
     tryFetch(url1),
-    tryFetch(url2)
+    tryFetch(url2),
+    tryFetch(url3)
   ]);
 
   if (!rows1 && !rows2) {
@@ -660,15 +664,23 @@ async function loadData() {
   // Show which files loaded
   const el = document.getElementById('filesLoaded');
   if (el) {
-    const loaded = [rows1 ? 'Sheet1' : null, rows2 ? 'Sheet2' : null].filter(Boolean);
-    const missing = [!rows1 ? 'Sheet1' : null, !rows2 ? 'Sheet2' : null].filter(Boolean);
-    let html = loaded.map(f => `<span style="color:var(--green)">${f} ✓</span>`).join('&nbsp; ');
-    if (missing.length) html += '&nbsp; ' + missing.map(f => `<span style="color:var(--red);opacity:0.6">${f} ✗</span>`).join('&nbsp; ');
+    const sheets = [
+      { label:'Results 1', rows: rows1 },
+      { label:'Results 2', rows: rows2 },
+      { label:'Fixtures',  rows: rows3 },
+    ];
+    let html = sheets.map(s =>
+      s.rows
+        ? `<span style="color:var(--green)">${s.label} ✓</span>`
+        : `<span style="color:var(--red);opacity:0.6">${s.label} ✗</span>`
+    ).join('&nbsp; ');
     el.innerHTML = html;
   }
 
   DATA = [...(rows1 || []), ...(rows2 || [])];
+  FIXTURES_DATA = rows3 || [];
   initDashboard();
+  renderFixturesTab();
 }
 
 loadData();
@@ -1857,6 +1869,213 @@ function renderPerfTable() {
     <div class="stats-grid" id="insightsGrid"></div>
   </div>
 </div>
+
+<div id="tab-upcoming" class="tab-panel">
+  <div class="stats-page">
+    <!-- Header -->
+    <div style="margin-bottom:20px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.06em;color:var(--yellow);">Upcoming Fixtures</div>
+      <div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:3px;">Loaded from Google Sheets · Fixtures tab (gid: 1892133300)</div>
+    </div>
+
+    <!-- Filters -->
+    <div class="stats-filters" style="margin-bottom:18px;" id="upcomingFiltersBar">
+      <span class="flbl">Division</span>
+      <select id="upDiv" onchange="renderFixturesTab()"><option value="all">All Divisions</option></select>
+      <span class="flbl" style="margin-left:8px">Referee</span>
+      <select id="upRef" onchange="renderFixturesTab()"><option value="all">All Referees</option></select>
+      <span class="flbl" style="margin-left:8px">Date</span>
+      <select id="upDate" onchange="renderFixturesTab()"><option value="all">All Dates</option></select>
+      <button onclick="resetUpcomingFilters()" style="margin-left:auto;background:transparent;border:1px solid rgba(253,184,19,0.4);color:var(--yellow);font-family:'DM Sans',sans-serif;font-size:0.68rem;font-weight:700;padding:4px 10px;border-radius:5px;cursor:pointer;letter-spacing:0.05em;transition:all 0.15s;" onmouseover="this.style.background='rgba(253,184,19,0.1)'" onmouseout="this.style.background='transparent'">↺ Reset</button>
+    </div>
+
+    <!-- Legend -->
+    <div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+      <span style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);">Confirmation:</span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#8ba2c1"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#27ae60;"></span>Confirmed ✓</span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#8ba2c1"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#c0392b;"></span>Not Confirmed ✗</span>
+    </div>
+
+    <!-- Count -->
+    <div class="rcount" id="upcomingCount"></div>
+
+    <!-- Table -->
+    <div class="twrap" style="border-radius:12px;">
+      <table id="upcomingTable" style="width:100%;border-collapse:collapse;font-size:0.84rem;min-width:900px;">
+        <thead>
+          <tr style="background:var(--blue2);">
+            <th style="padding:13px 14px;text-align:left;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--yellow);border-bottom:1px solid var(--border);white-space:nowrap;">Date</th>
+            <th style="padding:13px 14px;text-align:left;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--yellow);border-bottom:1px solid var(--border);white-space:nowrap;">Division</th>
+            <th style="padding:13px 14px;text-align:center;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--yellow);border-bottom:1px solid var(--border);white-space:nowrap;">Home Team</th>
+            <th style="padding:13px 14px;text-align:center;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--yellow);border-bottom:1px solid var(--border);white-space:nowrap;">Away Team</th>
+            <th style="padding:13px 14px;text-align:center;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--yellow);border-bottom:1px solid var(--border);white-space:nowrap;">Kick Off</th>
+            <th style="padding:13px 14px;text-align:center;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--yellow);border-bottom:1px solid var(--border);white-space:nowrap;">Referee</th>
+            <th style="padding:13px 14px;text-align:center;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--yellow);border-bottom:1px solid var(--border);white-space:nowrap;">Comments</th>
+            <th style="padding:13px 14px;text-align:center;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--yellow);border-bottom:1px solid var(--border);white-space:nowrap;">Pitch</th>
+            <th style="padding:13px 14px;text-align:center;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--yellow);border-bottom:1px solid var(--border);white-space:nowrap;">Game Length</th>
+          </tr>
+        </thead>
+        <tbody id="upcomingTbody">
+          <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted);">Loading fixtures…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty state hint -->
+    <div id="upcomingEmptyHint" style="display:none;margin-top:16px;padding:16px 20px;background:rgba(253,184,19,0.05);border:1px solid rgba(253,184,19,0.15);border-radius:10px;">
+      <div style="font-size:0.75rem;color:var(--muted);">No fixtures data loaded yet. Make sure your Google Sheet has a tab named <strong style="color:var(--yellow);">Fixtures</strong> (gid: <code style="color:var(--yellow);">1892133300</code>) with the following columns:</div>
+      <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;">
+        ${['Date','Division','Home Team','H Conf','A Conf','Away Team','Kick Off','Referee','Ref Conf','Comments','Pitch','Game Length'].map(c=>`<span style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:3px 8px;font-size:0.7rem;color:var(--text);">${c}</span>`).join('')}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════
+   UPCOMING FIXTURES TAB
+════════════════════════════════════════ */
+
+// Column name mapping (case-insensitive, trimmed)
+function getFixCol(row, ...names) {
+  for (const n of names) {
+    const key = Object.keys(row).find(k => k.trim().toLowerCase() === n.toLowerCase());
+    if (key !== undefined) return (row[key] || '').toString().trim();
+  }
+  return '';
+}
+
+function resetUpcomingFilters() {
+  const els = ['upDiv','upRef','upDate'];
+  els.forEach(id => { const el = document.getElementById(id); if(el) el.value = 'all'; });
+  renderFixturesTab();
+}
+
+function upcomingConfStyle(val) {
+  const yes = val && val.toUpperCase() === 'Y';
+  return yes
+    ? 'background:rgba(39,174,96,0.18);color:#2ecc71;border-left:2px solid #27ae60;'
+    : 'background:rgba(192,57,43,0.18);color:#e74c3c;border-left:2px solid #c0392b;';
+}
+
+function upcomingTeamCell(name, conf) {
+  const yes = conf && conf.toUpperCase() === 'Y';
+  const nameHtml = /belmont fc/i.test(name)
+    ? `<span style="color:var(--yellow);font-weight:800;">${name}</span>`
+    : `<span style="color:#ffffff;">${name}</span>`;
+  return `<td style="padding:10px 14px;text-align:center;font-weight:600;font-size:0.84rem;${upcomingConfStyle(conf)}">${nameHtml} <span style="font-size:0.7rem;opacity:0.8">${yes?'✓':'✗'}</span></td>`;
+}
+
+function upcomingRefCell(name, conf) {
+  if (!name) return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;color:var(--muted);"></td>`;
+  const yes = conf && conf.toUpperCase() === 'Y';
+  return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;color:#ffffff;${upcomingConfStyle(conf)}">${name} <span style="opacity:0.8">${yes?'✓':'✗'}</span></td>`;
+}
+
+// Division color palette (non traffic-light)
+const DIV_PALETTE = ['#7c6fcd','#e07b39','#5b9bd5','#4db8b8','#c76eb0','#6fad7c','#d4a843','#6fa8d4'];
+const _divColorMap = {};
+let _divColorIdx = 0;
+function divColor(div) {
+  if (!_divColorMap[div]) { _divColorMap[div] = DIV_PALETTE[_divColorIdx % DIV_PALETTE.length]; _divColorIdx++; }
+  return _divColorMap[div];
+}
+
+function renderFixturesTab() {
+  const rows = FIXTURES_DATA;
+  const tbody = document.getElementById('upcomingTbody');
+  const hint = document.getElementById('upcomingEmptyHint');
+  const countEl = document.getElementById('upcomingCount');
+
+  if (!tbody) return;
+
+  if (!rows || rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted);">No fixtures data found. Check your Google Sheet (gid: 1892133300).</td></tr>`;
+    if (hint) hint.style.display = 'block';
+    if (countEl) countEl.innerHTML = '';
+    return;
+  }
+  if (hint) hint.style.display = 'none';
+
+  // Build filter options
+  const allDivs  = [...new Set(rows.map(r => getFixCol(r,'Division')).filter(Boolean))].sort();
+  const allRefs  = [...new Set(rows.map(r => getFixCol(r,'Referee')).filter(Boolean))].sort();
+  const allDates = [...new Set(rows.map(r => getFixCol(r,'Date')).filter(Boolean))];
+
+  function rebuildUpSel(id, opts, label) {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = `<option value="all">${label}</option>` + opts.map(v=>`<option value="${v}"${v===cur?' selected':''}>${v}</option>`).join('');
+  }
+  rebuildUpSel('upDiv',  allDivs,  'All Divisions');
+  rebuildUpSel('upRef',  allRefs,  'All Referees');
+  rebuildUpSel('upDate', allDates, 'All Dates');
+
+  const selDiv  = document.getElementById('upDiv')?.value  || 'all';
+  const selRef  = document.getElementById('upRef')?.value  || 'all';
+  const selDate = document.getElementById('upDate')?.value || 'all';
+
+  const filtered = rows.filter(r => {
+    if (selDiv  !== 'all' && getFixCol(r,'Division') !== selDiv)   return false;
+    if (selRef  !== 'all' && getFixCol(r,'Referee')  !== selRef)   return false;
+    if (selDate !== 'all' && getFixCol(r,'Date')     !== selDate)  return false;
+    return true;
+  });
+
+  if (countEl) {
+    const isFiltered = selDiv !== 'all' || selRef !== 'all' || selDate !== 'all';
+    countEl.innerHTML = isFiltered
+      ? `Showing <span>${filtered.length}</span> of ${rows.length} fixtures`
+      : `<span>${rows.length}</span> fixtures total`;
+  }
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted);">No fixtures match the selected filters</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((r, i) => {
+    const date     = getFixCol(r,'Date');
+    const div      = getFixCol(r,'Division');
+    const home     = getFixCol(r,'Home Team');
+    const hConf    = getFixCol(r,'H Conf');
+    const away     = getFixCol(r,'Away Team');
+    const aConf    = getFixCol(r,'A Conf');
+    const ko       = getFixCol(r,'Kick Off');
+    const ref      = getFixCol(r,'Referee');
+    const refConf  = getFixCol(r,'Ref Conf');
+    const comments = getFixCol(r,'Comments');
+    const pitch    = getFixCol(r,'Pitch');
+    const gameLen  = getFixCol(r,'Game Length');
+    const dc       = divColor(div);
+    const rowBg    = i%2===1 ? 'background:rgba(255,255,255,0.02)' : '';
+
+    return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s;${rowBg}"
+      onmouseover="this.style.background='rgba(255,255,255,0.04)'"
+      onmouseout="this.style.background='${i%2===1?'rgba(255,255,255,0.02)':''}'">
+      <td style="padding:10px 14px;font-size:0.75rem;color:var(--muted);white-space:nowrap;">${date}</td>
+      <td style="padding:10px 14px;white-space:nowrap;"><span style="font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:4px;background:${dc}22;color:${dc};border:1px solid ${dc}44;">${div}</span></td>
+      ${upcomingTeamCell(home, hConf)}
+      ${upcomingTeamCell(away, aConf)}
+      <td style="padding:10px 14px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--yellow);">${ko}</td>
+      ${upcomingRefCell(ref, refConf)}
+      <td style="padding:10px 14px;text-align:center;font-size:0.75rem;color:var(--muted);font-style:italic;">${comments||'—'}</td>
+      <td style="padding:10px 14px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#fdb813;background:rgba(253,184,19,0.07);">${pitch}</td>
+      <td style="padding:10px 14px;text-align:center;font-size:0.78rem;color:var(--muted);">${gameLen}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Handle tab switch for upcoming
+const _origSwitchTab = window._switchTab;
+window._switchTab = function(tab, btn) {
+  if (_origSwitchTab) _origSwitchTab(tab, btn);
+  if (tab === 'upcoming') renderFixturesTab();
+};
+</script>
+
+
 
 </body>
 </html>
