@@ -573,57 +573,47 @@ function renderMatchDay() {
     return mins === null ? -1 : Math.round((mins - minStart) / 15);
   }
 
-  const startMap = {};
-  const bodyMap  = {};
-  const overlapSet = new Set(); // keys of game blocks that overlap
-  const overlapWarnings = []; // human-readable descriptions
+  // ── Per-pitch overlap detection ──
+  // conflictPairs[pi] = array of [gameA, gameB] pairs that overlap on that pitch
+  const conflictPairs = {};
+  // conflictGames[pi] = Set of game objects involved in any conflict on that pitch
+  const conflictGames = {};
+
+  const overlapWarnings = [];
 
   pitches.forEach((p, pi) => {
+    conflictPairs[pi] = [];
+    conflictGames[pi] = new Set();
     const pGames = homeGames.filter(g => g.pitch === p);
-    pGames.forEach(g => {
-      const si = timeToIdx(g.ko);
-      if (si < 0) return;
-      const span = Math.ceil(g.gameLen / 15);
-      startMap[`${si}-${pi}`] = { game: g, span };
-      for (let i = 0; i < span; i++) bodyMap[`body-${si+i}-${pi}`] = true;
-    });
-
-    // Detect overlaps on this pitch: compare every pair of games
     for (let a = 0; a < pGames.length; a++) {
       for (let b = a + 1; b < pGames.length; b++) {
         const ga = pGames[a], gb = pGames[b];
         const aStart = timeToMins(ga.ko), bStart = timeToMins(gb.ko);
         if (aStart === null || bStart === null) continue;
         const aEnd = aStart + ga.gameLen, bEnd = bStart + gb.gameLen;
-        // Overlap if intervals intersect (not merely touching)
         if (aStart < bEnd && bStart < aEnd) {
-          const siA = timeToIdx(ga.ko), siB = timeToIdx(gb.ko);
-          overlapSet.add(`${siA}-${pi}`);
-          overlapSet.add(`${siB}-${pi}`);
-          overlapWarnings.push({
-            pitch: p,
-            gameA: ga,
-            gameB: gb,
-            aStart, aEnd, bStart, bEnd
-          });
+          conflictPairs[pi].push([ga, gb]);
+          conflictGames[pi].add(ga);
+          conflictGames[pi].add(gb);
+          overlapWarnings.push({ pitch: p, gameA: ga, gameB: gb, aStart, aEnd, bStart, bEnd });
         }
       }
     }
   });
 
-  // Render warning banner
+  // ── Warning banner ──
   const warningEl = document.getElementById('md-overlap-warning');
   if (warningEl) {
     if (overlapWarnings.length) {
-      const items = overlapWarnings.map(w => {
-        const fmt = m => `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
-        return `<li style="margin:4px 0 4px 0;">
+      const fmt = m => `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
+      const items = overlapWarnings.map(w =>
+        `<li style="margin:4px 0;">
           <span style="color:var(--yellow);font-weight:700;">${w.pitch}</span>
           — <span style="color:#ff8080;">${w.gameA.div}</span> (${fmt(w.aStart)}–${fmt(w.aEnd)})
           overlaps with <span style="color:#ff8080;">${w.gameB.div}</span> (${fmt(w.bStart)}–${fmt(w.bEnd)})
-          · <span style="color:var(--muted);font-size:0.7rem;">${w.gameA.home} vs ${w.gameA.away} &amp; ${w.gameB.home} vs ${w.gameB.away}</span>
-        </li>`;
-      }).join('');
+          <span style="color:var(--muted);font-size:0.7rem;">· ${w.gameA.home} vs ${w.gameA.away} &amp; ${w.gameB.home} vs ${w.gameB.away}</span>
+        </li>`
+      ).join('');
       warningEl.style.display = 'block';
       warningEl.innerHTML = `
         <div style="display:flex;align-items:flex-start;gap:10px;">
@@ -637,6 +627,69 @@ function renderMatchDay() {
       warningEl.style.display = 'none';
       warningEl.innerHTML = '';
     }
+  }
+
+  // ── Build startMap / bodyMap ──
+  // For pitches with conflicts we need to track ALL games starting at a given slot,
+  // not just the first one.  Use startMap[key] = [ {game, span}, ... ]
+  const startMap = {};   // `${si}-${pi}` → [ {game, span}, ... ]
+  const bodyMap  = {};   // `body-${si}-${pi}` → true  (slot is covered by a rowspan)
+
+  pitches.forEach((p, pi) => {
+    const pGames = homeGames.filter(g => g.pitch === p);
+    pGames.forEach(g => {
+      const si = timeToIdx(g.ko);
+      if (si < 0) return;
+      const span = Math.ceil(g.gameLen / 15);
+      const key = `${si}-${pi}`;
+      if (!startMap[key]) startMap[key] = [];
+      startMap[key].push({ game: g, span });
+      // Only mark body slots for the FIRST game on this pitch at this slot
+      // (conflict games will be rendered side-by-side inside one cell, not as extra rowspans)
+      if (startMap[key].length === 1) {
+        for (let i = 0; i < span; i++) bodyMap[`body-${si+i}-${pi}`] = true;
+      }
+    });
+    // For conflicting pitches: merge the rowspans so the cell covers all overlapping slots
+    if (conflictGames[pi].size > 0) {
+      // Find the combined slot range across all conflicting games on this pitch
+      let minSi = Infinity, maxSiEnd = 0;
+      conflictGames[pi].forEach(g => {
+        const si = timeToIdx(g.ko);
+        if (si < 0) return;
+        const span = Math.ceil(g.gameLen / 15);
+        if (si < minSi) minSi = si;
+        if (si + span > maxSiEnd) maxSiEnd = si + span;
+      });
+      // Store merged info on the first slot
+      const key = `${minSi}-${pi}`;
+      startMap[key] = startMap[key] || [];
+      // tag the entry so the renderer knows to use the merged span
+      startMap[key]._mergedSpan = maxSiEnd - minSi;
+      startMap[key]._minSi = minSi;
+      // Mark all merged body slots
+      for (let i = minSi; i < maxSiEnd; i++) bodyMap[`body-${i}-${pi}`] = true;
+    }
+  });
+
+  // ── Game block HTML helper ──
+  function gameBlock(game, span, isConflict, halfWidth) {
+    const isShort = span <= 3;
+    const dc = mdDivColor(game.div);
+    const h = span * 28 - 8;
+    const blockBg     = isConflict ? 'linear-gradient(135deg,#5a0a0a 0%,#8b1a1a 100%)' : 'linear-gradient(135deg,var(--blue2) 0%,#1a4a80 100%)';
+    const blockBorder = isConflict ? 'rgba(231,76,60,0.7)' : 'rgba(253,184,19,0.25)';
+    const shadow      = isConflict ? 'box-shadow:0 0 8px rgba(231,76,60,0.4);' : '';
+    const koColor     = isConflict ? '#ffaaaa' : 'var(--yellow)';
+    const divColor    = isConflict ? '#ff8080' : dc;
+    const widthStyle  = halfWidth ? 'width:50%;min-width:0;flex:1 1 0;' : 'width:100%;';
+    return `<div style="${widthStyle}background:${blockBg};border:1px solid ${blockBorder};border-radius:6px;padding:5px 7px;height:${h}px;display:flex;flex-direction:column;justify-content:center;gap:2px;${shadow}">
+      ${isConflict ? `<div style="font-size:0.55rem;font-weight:700;color:#ff6b6b;text-transform:uppercase;letter-spacing:0.08em;line-height:1;">⚠ Conflict</div>` : ''}
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:${koColor};line-height:1;">${game.ko}</div>
+      <div style="font-size:0.65rem;font-weight:700;color:${divColor};opacity:0.9;">${game.div}</div>
+      ${!isShort ? `<div style="font-size:0.72rem;font-weight:600;${/belmont fc/i.test(game.away)?'color:var(--yellow);':'color:#ffffff;'}">${game.away}</div>` : ''}
+      ${game.ref && !isShort ? `<div style="font-size:0.62rem;color:var(--muted);margin-top:1px;">Ref: ${game.ref}</div>` : ''}
+    </div>`;
   }
 
   const thStyle = `padding:11px 14px;text-align:center;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap;border-right:1px solid rgba(255,255,255,0.06);`;
@@ -672,38 +725,43 @@ function renderMatchDay() {
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid rgba(255,255,255,0.03)';
     let cells = `<td ${timeTd}>${label}</td>`;
+
     pitches.forEach((p, pi) => {
-      const sk = `${si}-${pi}`, bk = `body-${si}-${pi}`;
-      if (startMap[sk]) {
-        const { game, span } = startMap[sk];
-        const isShort = span <= 3;
-        const dc = mdDivColor(game.div);
-        const isOverlap = overlapSet.has(sk);
-        const blockBg   = isOverlap
-          ? 'linear-gradient(135deg,#5a0a0a 0%,#8b1a1a 100%)'
-          : 'linear-gradient(135deg,var(--blue2) 0%,#1a4a80 100%)';
-        const blockBorder = isOverlap
-          ? 'rgba(231,76,60,0.7)'
-          : 'rgba(253,184,19,0.25)';
-        const cellBg = isOverlap
-          ? 'rgba(180,30,30,0.25)'
-          : 'rgba(22,47,82,0.9)';
-        const cellBorder = isOverlap
-          ? 'rgba(231,76,60,0.4)'
-          : 'rgba(253,184,19,0.15)';
-        cells += `<td rowspan="${span}" style="padding:3px;vertical-align:top;border-right:1px solid ${cellBorder};background:${cellBg};">
-          <div style="background:${blockBg};border:1px solid ${blockBorder};border-radius:6px;padding:5px 7px;height:calc(${span}*28px - 8px);min-height:${span*28-8}px;display:flex;flex-direction:column;justify-content:center;gap:2px;${isOverlap?'box-shadow:0 0 8px rgba(231,76,60,0.4);':''}">
-            ${isOverlap ? `<div style="font-size:0.55rem;font-weight:700;color:#ff6b6b;text-transform:uppercase;letter-spacing:0.08em;line-height:1;">⚠ Conflict</div>` : ''}
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:${isOverlap?'#ffaaaa':'var(--yellow)'};line-height:1;">${game.ko}</div>
-            <div style="font-size:0.65rem;font-weight:700;color:${isOverlap?'#ff8080':dc};opacity:0.9;">${game.div}</div>
-            ${!isShort ? `<div style="font-size:0.72rem;font-weight:600;${/belmont fc/i.test(game.away)?'color:var(--yellow);':'color:#ffffff;'}">${game.away}</div>` : ''}
-            ${game.ref && !isShort ? `<div style="font-size:0.62rem;color:var(--muted);margin-top:1px;">Ref: ${game.ref}</div>` : ''}
-          </div>
-        </td>`;
+      const sk  = `${si}-${pi}`;
+      const bk  = `body-${si}-${pi}`;
+      const entries = startMap[sk];
+
+      if (entries && entries.length) {
+        const hasConflict = conflictGames[pi].size > 0;
+
+        if (hasConflict) {
+          // ── Conflict cell: all conflicting games side-by-side in one rowspan cell ──
+          // Only render at the first (merged) slot for this pitch
+          if (si === entries._minSi) {
+            const mergedSpan = entries._mergedSpan;
+            // Gather all conflict games for this pitch in time order
+            const allConflicting = [...conflictGames[pi]].sort((a,b) => timeToMins(a.ko) - timeToMins(b.ko));
+            const blocksHtml = allConflicting.map(g => {
+              const span = Math.ceil(g.gameLen / 15);
+              return gameBlock(g, mergedSpan, true, allConflicting.length > 1);
+            }).join('');
+            cells += `<td rowspan="${mergedSpan}" style="padding:3px;vertical-align:top;border-right:1px solid rgba(231,76,60,0.4);background:rgba(180,30,30,0.15);">
+              <div style="display:flex;gap:3px;height:${mergedSpan*28-8}px;align-items:stretch;">${blocksHtml}</div>
+            </td>`;
+          }
+          // body slots already marked — skip
+        } else {
+          // ── Normal single-game cell ──
+          const { game, span } = entries[0];
+          cells += `<td rowspan="${span}" style="padding:3px;vertical-align:top;border-right:1px solid rgba(253,184,19,0.15);background:rgba(22,47,82,0.9);">
+            ${gameBlock(game, span, false, false)}
+          </td>`;
+        }
       } else if (!bodyMap[bk]) {
         cells += `<td ${emptyTd}></td>`;
       }
     });
+
     cells += `<td ${timeTd}>${label}</td>`;
     tr.innerHTML = cells;
     tbodyEl.appendChild(tr);
