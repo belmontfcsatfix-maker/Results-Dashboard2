@@ -318,6 +318,13 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
       <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#e67e22;flex-shrink:0;"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 2.5L6.5 6.5M6.5 2.5L2.5 6.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>Pending</span>
   </div>
 
+  <!-- ── DATE FILTER ── -->
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:var(--fbox);border:1px solid var(--fbox-b);border-radius:10px;">
+    <span style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;color:var(--yellow);opacity:0.85;white-space:nowrap;">Filter by Date</span>
+    <div id="md-date-btns" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
+    <button id="md-date-all-btn" onclick="mdToggleAllDates()" style="background:var(--blue2);border:1px solid rgba(255,255,255,0.1);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--yellow)';this.style.color='var(--text)'" onmouseout="mdRefreshAllBtnStyle()">All Dates</button>
+  </div>
+
   <!-- ── GAMES TABLE ── -->
   <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--yellow);margin-bottom:10px;">Games</div>
   <div style="border-radius:12px;border:1px solid var(--border);overflow-x:auto;background:var(--card);margin-bottom:36px;">
@@ -338,23 +345,13 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
     </table>
   </div>
 
-  <!-- ── PITCHES TABLE ── -->
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--yellow);">Pitches — Belmont FC Home Games</div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;color:var(--yellow);opacity:0.85;">Date</span>
-      <select id="md-date-sel" onchange="if(window._renderMatchDay) window._renderMatchDay()"
-        style="background:var(--blue2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.8rem;padding:6px 28px 6px 10px;border-radius:8px;outline:none;appearance:none;cursor:pointer;background-image:url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'9\' height=\'9\' fill=\'%238ba2c1\'%3E%3Cpath d=\'M0 3l4.5 4.5L9 3z\'/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 8px center;">
-        <option value="all">All Dates</option>
-      </select>
-    </div>
-  </div>
+  <!-- ── PITCHES SECTION ── -->
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--yellow);margin-bottom:10px;">Pitches — Belmont FC Home Games</div>
   <!-- ── OVERLAP WARNING ── -->
   <div id="md-overlap-warning" style="display:none;margin-bottom:12px;padding:12px 16px;background:rgba(180,30,30,0.18);border:1px solid rgba(231,76,60,0.45);border-radius:10px;color:var(--text);"></div>
 
-  <div style="border-radius:12px;border:1px solid var(--border);overflow-x:auto;background:var(--card);">
-    <table id="md-pitches-table" style="border-collapse:collapse;min-width:600px;width:100%;"></table>
-  </div>
+  <!-- ── PITCHES TABLES CONTAINER (one per selected date) ── -->
+  <div id="md-pitches-container"></div>
 
 </div>
 
@@ -375,6 +372,67 @@ function mdDivColor(div) {
     _mdDivColorIdx++;
   }
   return _mdDivColorMap[div];
+}
+
+// ── Match Day multiselect state ──
+window._mdSelectedDates = null; // null = not yet initialised; Set after first render
+
+function mdToggleAllDates() {
+  const allDates = window._mdAllDates || [];
+  const sel = window._mdSelectedDates;
+  // If everything is selected (or nothing), select only nearest upcoming date
+  const todayKey = window._mdTodayKey || 0;
+  const future = allDates.filter(d => d.key >= todayKey);
+  const defaultFmt = future.length ? future[0].fmt : (allDates.length ? allDates[allDates.length-1].fmt : null);
+  if (!sel || sel.size === allDates.length) {
+    // deselect all → select default only
+    window._mdSelectedDates = defaultFmt ? new Set([defaultFmt]) : new Set(allDates.map(d => d.fmt));
+  } else {
+    // select all
+    window._mdSelectedDates = new Set(allDates.map(d => d.fmt));
+  }
+  mdApplyDateFilter();
+}
+
+function mdToggleDate(fmt) {
+  const sel = window._mdSelectedDates || new Set();
+  if (sel.has(fmt)) {
+    if (sel.size > 1) sel.delete(fmt); // prevent empty selection
+  } else {
+    sel.add(fmt);
+  }
+  window._mdSelectedDates = sel;
+  mdApplyDateFilter();
+}
+
+function mdRefreshAllBtnStyle() {
+  const btn = document.getElementById('md-date-all-btn');
+  if (!btn) return;
+  const allDates = window._mdAllDates || [];
+  const sel = window._mdSelectedDates;
+  const allSelected = sel && sel.size === allDates.length;
+  btn.style.background = allSelected ? 'var(--yellow)' : 'var(--blue2)';
+  btn.style.borderColor = allSelected ? 'var(--yellow)' : 'rgba(255,255,255,0.1)';
+  btn.style.color = allSelected ? 'var(--blue)' : 'var(--muted)';
+  btn.style.fontWeight = allSelected ? '700' : 'normal';
+}
+
+function mdApplyDateFilter() {
+  mdRefreshAllBtnStyle();
+  // Refresh date button styles
+  const allDates = window._mdAllDates || [];
+  const sel = window._mdSelectedDates || new Set();
+  allDates.forEach(d => {
+    const btn = document.getElementById(`md-date-btn-${d.fmt.replace(/[^a-zA-Z0-9]/g,'_')}`);
+    if (!btn) return;
+    const active = sel.has(d.fmt);
+    btn.style.background = active ? 'var(--yellow)' : 'var(--blue2)';
+    btn.style.borderColor = active ? 'var(--yellow)' : 'rgba(255,255,255,0.1)';
+    btn.style.color = active ? 'var(--blue)' : 'var(--muted)';
+    btn.style.fontWeight = active ? '700' : 'normal';
+  });
+  // Re-render games table (filtered + descending) + pitches tables
+  if (window._renderMatchDayFiltered) window._renderMatchDayFiltered();
 }
 
 function renderMatchDay() {
@@ -458,34 +516,52 @@ function renderMatchDay() {
     };
   });
 
-  // ── Build / update date selector ──
-  const dateSel = document.getElementById('md-date-sel');
+  // Store all games globally for re-renders
+  window._mdAllGames = MD_GAMES;
+
+  // ── Build sorted date list (ascending for buttons, descending for display) ──
+  const todayKey = dateKey(new Date());
+  window._mdTodayKey = todayKey;
+
   const allDates = [...new Map(
     MD_GAMES.filter(g => g.dateObj)
       .sort((a,b) => a.dateKey - b.dateKey)
       .map(g => [g.dateFmt, g])
   ).values()].map(g => ({ fmt: g.dateFmt, key: g.dateKey, obj: g.dateObj }));
+  window._mdAllDates = allDates;
 
   // Determine "most immediate" date: closest upcoming, or most recent past
-  const todayKey = dateKey(new Date());
   let defaultDate = null;
   if (allDates.length) {
     const future = allDates.filter(d => d.key >= todayKey);
     defaultDate = future.length ? future[0].fmt : allDates[allDates.length-1].fmt;
   }
 
-  // Rebuild options, preserving current selection if valid
-  const curSel = dateSel ? dateSel.value : 'all';
+  // Initialise selection on first load (preserve existing selection if valid)
   const validFmts = new Set(allDates.map(d => d.fmt));
-  const selVal = (curSel !== 'all' && validFmts.has(curSel)) ? curSel : (defaultDate || 'all');
-
-  if (dateSel) {
-    dateSel.innerHTML = `<option value="all">All Dates</option>` +
-      allDates.map(d => `<option value="${d.fmt}"${d.fmt===selVal?' selected':''}>${d.fmt}</option>`).join('');
+  if (!window._mdSelectedDates) {
+    window._mdSelectedDates = defaultDate ? new Set([defaultDate]) : new Set(allDates.map(d => d.fmt));
+  } else {
+    // Remove any stale dates no longer in data
+    for (const f of [...window._mdSelectedDates]) {
+      if (!validFmts.has(f)) window._mdSelectedDates.delete(f);
+    }
+    if (window._mdSelectedDates.size === 0 && defaultDate) window._mdSelectedDates.add(defaultDate);
   }
 
-  // Filter games by selected date — only for the Pitches table
-  const filtered = selVal === 'all' ? MD_GAMES : MD_GAMES.filter(g => g.dateFmt === selVal);
+  // ── Build date filter buttons ──
+  const dateBtnsEl = document.getElementById('md-date-btns');
+  if (dateBtnsEl) {
+    dateBtnsEl.innerHTML = allDates.map(d => {
+      const id = `md-date-btn-${d.fmt.replace(/[^a-zA-Z0-9]/g,'_')}`;
+      const active = window._mdSelectedDates.has(d.fmt);
+      return `<button id="${id}" onclick="mdToggleDate('${d.fmt}')"
+        style="background:${active?'var(--yellow)':'var(--blue2)'};border:1px solid ${active?'var(--yellow)':'rgba(255,255,255,0.1)'};color:${active?'var(--blue)':'var(--muted)'};font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.15s;font-weight:${active?'700':'normal'};"
+        onmouseover="this.style.borderColor='var(--yellow)';this.style.color=this.style.background==='rgb(253, 184, 19)'?'var(--blue)':'var(--text)'"
+        onmouseout="mdApplyDateFilter()">${d.fmt}</button>`;
+    }).join('');
+  }
+  mdRefreshAllBtnStyle();
 
   /* ── helpers ── */
   function confIcon(val) {
@@ -506,14 +582,27 @@ function renderMatchDay() {
     return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;color:#ffffff;"><span style="display:inline-flex;align-items:center;gap:6px;justify-content:center;">${name} ${confIcon(conf)}</span></td>`;
   }
 
-  /* ── Games Table (always shows all games, unaffected by date filter) ── */
+  // Store helpers globally for re-use in table render
+  window._mdHelpers = { confIcon, highlightBFC, teamCell, refCell, fmtDate, dateKey, timeToMins: null, minsToLabel: null };
+
+  /* ── Games Table: filtered by selected dates, descending order ── */
+  const sel = window._mdSelectedDates;
+  const filteredGames = sel && sel.size > 0
+    ? MD_GAMES.filter(g => sel.has(g.dateFmt))
+    : MD_GAMES;
+
+  // Sort ascending (earliest first)
+  const sortedGames = [...filteredGames].sort((a,b) => a.dateKey - b.dateKey);
+
   const tbody = document.getElementById('md-games-tbody');
   tbody.innerHTML = '';
 
   if (!MD_GAMES.length) {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No fixture data loaded yet — check your Google Sheet connection</td></tr>`;
+  } else if (!sortedGames.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No games for the selected date(s)</td></tr>`;
   } else {
-    MD_GAMES.forEach((g, i) => {
+    sortedGames.forEach((g, i) => {
       const dc = mdDivColor(g.div);
       const tr = document.createElement('tr');
       tr.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s;${i%2===1?'background:rgba(255,255,255,0.02)':''}`;
@@ -533,17 +622,28 @@ function renderMatchDay() {
     });
   }
 
-  /* ── Pitches Table ── */
-  // Only home games (Belmont FC is Home) that have a pitch assigned, filtered by date
-  const homeGames = filtered.filter(g => g.belHome && g.pitch).sort((a,b) => a.pitch.localeCompare(b.pitch));
-  const pitches = [...new Set(homeGames.map(g => g.pitch))].sort();
+  // Now render pitches tables
+  window._renderMatchDayTables();
+}
 
-  const pt = document.getElementById('md-pitches-table');
-  pt.innerHTML = '';
+// ── Render pitches tables (one per selected date, in same order as Games table = descending) ──
+window._renderMatchDayTables = function() {
+  const MD_GAMES = window._mdAllGames || [];
+  const sel = window._mdSelectedDates;
+  const allDates = window._mdAllDates || [];
+  const container = document.getElementById('md-pitches-container');
+  if (!container) return;
+  container.innerHTML = '';
 
-  if (!pitches.length) return;
+  // Determine which dates to show pitches for (descending = same order as games table)
+  let datesToShow;
+  if (!sel || sel.size === 0 || sel.size === allDates.length) {
+    datesToShow = [...allDates].sort((a,b) => a.key - b.key);
+  } else {
+    datesToShow = allDates.filter(d => sel.has(d.fmt)).sort((a,b) => a.key - b.key);
+  }
 
-  // Determine time range from actual game data (rounded to nearest 15 min)
+  /* ── helpers ── */
   function timeToMins(t) {
     if (!t) return null;
     const parts = t.split(':').map(Number);
@@ -553,63 +653,215 @@ function renderMatchDay() {
     return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
   }
 
-  // Find earliest start and latest end across filtered home games
-  let minStart = Infinity, maxEnd = 0;
-  homeGames.forEach(g => {
-    const s = timeToMins(g.ko);
-    if (s === null) return;
-    if (s < minStart) minStart = s;
-    const e = s + g.gameLen;
-    if (e > maxEnd) maxEnd = e;
-  });
-  if (!isFinite(minStart)) { minStart = 540; maxEnd = 840; }
-  minStart = Math.floor(minStart / 15) * 15;
-  maxEnd   = Math.ceil(maxEnd / 15) * 15;
+  // Collect ALL overlap warnings across all dates
+  const allOverlapWarnings = [];
 
-  const slots = [];
-  for (let m = minStart; m < maxEnd; m += 15) slots.push(m);
+  datesToShow.forEach(dateEntry => {
+    const dateFmt = dateEntry.fmt;
+    const homeGames = MD_GAMES.filter(g => g.belHome && g.pitch && g.dateFmt === dateFmt)
+      .sort((a,b) => a.pitch.localeCompare(b.pitch));
+    const pitches = [...new Set(homeGames.map(g => g.pitch))].sort();
 
-  function timeToIdx(t) {
-    const mins = timeToMins(t);
-    return mins === null ? -1 : Math.round((mins - minStart) / 15);
-  }
+    if (!pitches.length) return; // skip dates with no home games with pitch
 
-  // ── Per-pitch overlap detection ──
-  // conflictPairs[pi] = array of [gameA, gameB] pairs that overlap on that pitch
-  const conflictPairs = {};
-  // conflictGames[pi] = Set of game objects involved in any conflict on that pitch
-  const conflictGames = {};
+    // ── Date label ──
+    const dateLabel = document.createElement('div');
+    dateLabel.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:10px;margin-top:8px;';
+    dateLabel.innerHTML = `
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:0.85rem;letter-spacing:0.06em;color:var(--muted);">Date:</span>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.08em;color:var(--yellow);background:rgba(253,184,19,0.1);border:1px solid rgba(253,184,19,0.3);border-radius:6px;padding:3px 12px;">${dateFmt}</span>`;
+    container.appendChild(dateLabel);
 
-  const overlapWarnings = [];
+    // Determine time range for this date
+    let minStart = Infinity, maxEnd = 0;
+    homeGames.forEach(g => {
+      const s = timeToMins(g.ko);
+      if (s === null) return;
+      if (s < minStart) minStart = s;
+      const e = s + g.gameLen;
+      if (e > maxEnd) maxEnd = e;
+    });
+    if (!isFinite(minStart)) { minStart = 540; maxEnd = 840; }
+    minStart = Math.floor(minStart / 15) * 15;
+    maxEnd   = Math.ceil(maxEnd / 15) * 15;
 
-  pitches.forEach((p, pi) => {
-    conflictPairs[pi] = [];
-    conflictGames[pi] = new Set();
-    const pGames = homeGames.filter(g => g.pitch === p);
-    for (let a = 0; a < pGames.length; a++) {
-      for (let b = a + 1; b < pGames.length; b++) {
-        const ga = pGames[a], gb = pGames[b];
-        const aStart = timeToMins(ga.ko), bStart = timeToMins(gb.ko);
-        if (aStart === null || bStart === null) continue;
-        const aEnd = aStart + ga.gameLen, bEnd = bStart + gb.gameLen;
-        if (aStart < bEnd && bStart < aEnd) {
-          conflictPairs[pi].push([ga, gb]);
-          conflictGames[pi].add(ga);
-          conflictGames[pi].add(gb);
-          overlapWarnings.push({ pitch: p, gameA: ga, gameB: gb, aStart, aEnd, bStart, bEnd });
+    const slots = [];
+    for (let m = minStart; m < maxEnd; m += 15) slots.push(m);
+
+    function timeToIdx(t) {
+      const mins = timeToMins(t);
+      return mins === null ? -1 : Math.round((mins - minStart) / 15);
+    }
+
+    // ── Per-pitch overlap detection ──
+    const conflictPairs = {};
+    const conflictGames = {};
+    const overlapWarnings = [];
+
+    pitches.forEach((p, pi) => {
+      conflictPairs[pi] = [];
+      conflictGames[pi] = new Set();
+      const pGames = homeGames.filter(g => g.pitch === p);
+      for (let a = 0; a < pGames.length; a++) {
+        for (let b = a + 1; b < pGames.length; b++) {
+          const ga = pGames[a], gb = pGames[b];
+          const aStart = timeToMins(ga.ko), bStart = timeToMins(gb.ko);
+          if (aStart === null || bStart === null) continue;
+          const aEnd = aStart + ga.gameLen, bEnd = bStart + gb.gameLen;
+          if (aStart < bEnd && bStart < aEnd) {
+            conflictPairs[pi].push([ga, gb]);
+            conflictGames[pi].add(ga);
+            conflictGames[pi].add(gb);
+            overlapWarnings.push({ pitch: p, date: dateFmt, gameA: ga, gameB: gb, aStart, aEnd, bStart, bEnd });
+          }
         }
       }
+    });
+    allOverlapWarnings.push(...overlapWarnings);
+
+    // ── Build startMap / bodyMap ──
+    const startMap = {};
+    const bodyMap  = {};
+
+    pitches.forEach((p, pi) => {
+      const pGames = homeGames.filter(g => g.pitch === p);
+      pGames.forEach(g => {
+        const si = timeToIdx(g.ko);
+        if (si < 0) return;
+        const span = Math.ceil(g.gameLen / 15);
+        const key = `${si}-${pi}`;
+        if (!startMap[key]) startMap[key] = [];
+        startMap[key].push({ game: g, span });
+        if (startMap[key].length === 1) {
+          for (let i = 0; i < span; i++) bodyMap[`body-${si+i}-${pi}`] = true;
+        }
+      });
+      if (conflictGames[pi].size > 0) {
+        let minSi = Infinity, maxSiEnd = 0;
+        conflictGames[pi].forEach(g => {
+          const si = timeToIdx(g.ko);
+          if (si < 0) return;
+          const span = Math.ceil(g.gameLen / 15);
+          if (si < minSi) minSi = si;
+          if (si + span > maxSiEnd) maxSiEnd = si + span;
+        });
+        const key = `${minSi}-${pi}`;
+        startMap[key] = startMap[key] || [];
+        startMap[key]._mergedSpan = maxSiEnd - minSi;
+        startMap[key]._minSi = minSi;
+        for (let i = minSi; i < maxSiEnd; i++) bodyMap[`body-${i}-${pi}`] = true;
+      }
+    });
+
+    // ── Game block HTML helper ──
+    function gameBlock(game, span, isConflict, halfWidth) {
+      const isShort = span <= 3;
+      const dc = mdDivColor(game.div);
+      const h = span * 28 - 8;
+      const blockBg     = isConflict ? 'linear-gradient(135deg,#5a0a0a 0%,#8b1a1a 100%)' : 'linear-gradient(135deg,var(--blue2) 0%,#1a4a80 100%)';
+      const blockBorder = isConflict ? 'rgba(231,76,60,0.7)' : 'rgba(253,184,19,0.25)';
+      const shadow      = isConflict ? 'box-shadow:0 0 8px rgba(231,76,60,0.4);' : '';
+      const koColor     = isConflict ? '#ffaaaa' : 'var(--yellow)';
+      const divColor    = isConflict ? '#ff8080' : dc;
+      const widthStyle  = halfWidth ? 'width:50%;min-width:0;flex:1 1 0;' : 'width:100%;';
+      return `<div style="${widthStyle}background:${blockBg};border:1px solid ${blockBorder};border-radius:6px;padding:5px 7px;height:${h}px;display:flex;flex-direction:column;justify-content:center;gap:2px;${shadow}">
+        ${isConflict ? `<div style="font-size:0.55rem;font-weight:700;color:#ff6b6b;text-transform:uppercase;letter-spacing:0.08em;line-height:1;">⚠ Conflict</div>` : ''}
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:${koColor};line-height:1;">${game.ko}</div>
+        <div style="font-size:0.65rem;font-weight:700;color:${divColor};opacity:0.9;">${game.div}</div>
+        ${!isShort ? `<div style="font-size:0.72rem;font-weight:600;${/belmont fc/i.test(game.away)?'color:var(--yellow);':'color:#ffffff;'}">${game.away}</div>` : ''}
+        ${game.ref && !isShort ? `<div style="font-size:0.62rem;color:var(--muted);margin-top:1px;">Ref: ${game.ref}</div>` : ''}
+      </div>`;
     }
+
+    const thStyle = `padding:11px 14px;text-align:center;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap;border-right:1px solid rgba(255,255,255,0.06);`;
+
+    const pitchInfo = {};
+    pitches.forEach(p => {
+      const pGames = homeGames.filter(g => g.pitch === p);
+      const lens = [...new Set(pGames.map(g => g.gameLen).filter(Boolean))];
+      pitchInfo[p] = lens.length === 1 ? `${lens[0]} mins` : lens.map(l=>`${l}m`).join('/');
+    });
+
+    // Build the table element
+    const pt = document.createElement('table');
+    pt.style.cssText = 'border-collapse:collapse;min-width:600px;width:100%;';
+
+    let theadHtml = `<thead>
+      <tr style="background:var(--blue2);">
+        <th style="${thStyle}color:var(--muted);">Pitch &rarr;</th>`;
+    pitches.forEach(p => {
+      theadHtml += `<th style="${thStyle}color:var(--yellow);">${p}</th>`;
+    });
+    theadHtml += `<th style="${thStyle}color:var(--muted);">&larr; Pitch</th></tr>
+      <tr style="background:#0e2040;">
+        <th style="${thStyle}color:var(--muted);font-size:0.55rem;">Slot &rarr;</th>`;
+    pitches.forEach(p => {
+      theadHtml += `<th style="${thStyle}color:var(--muted);font-size:0.6rem;">${pitchInfo[p]||''}</th>`;
+    });
+    theadHtml += `<th style="${thStyle}font-size:0.55rem;color:var(--muted);">&larr; Slot</th></tr></thead>`;
+    pt.innerHTML = theadHtml;
+
+    const timeTd  = `style="padding:0 12px;height:28px;font-family:'Bebas Neue',sans-serif;font-size:0.85rem;color:var(--muted);background:#0b1a30;border-right:2px solid rgba(253,184,19,0.2);white-space:nowrap;vertical-align:middle;text-align:center;"`;
+    const emptyTd = `style="height:28px;border-right:1px solid rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);"`;
+
+    const tbodyEl = document.createElement('tbody');
+    slots.forEach((slotMins, si) => {
+      const label = minsToLabel(slotMins);
+      const tr = document.createElement('tr');
+      tr.style.borderBottom = '1px solid rgba(255,255,255,0.03)';
+      let cells = `<td ${timeTd}>${label}</td>`;
+
+      pitches.forEach((p, pi) => {
+        const sk  = `${si}-${pi}`;
+        const bk  = `body-${si}-${pi}`;
+        const entries = startMap[sk];
+
+        if (entries && entries.length) {
+          const hasConflict = conflictGames[pi].size > 0;
+          if (hasConflict) {
+            if (si === entries._minSi) {
+              const mergedSpan = entries._mergedSpan;
+              const allConflicting = [...conflictGames[pi]].sort((a,b) => timeToMins(a.ko) - timeToMins(b.ko));
+              const blocksHtml = allConflicting.map(g => {
+                const span = Math.ceil(g.gameLen / 15);
+                return gameBlock(g, mergedSpan, true, allConflicting.length > 1);
+              }).join('');
+              cells += `<td rowspan="${mergedSpan}" style="padding:3px;vertical-align:top;border-right:1px solid rgba(231,76,60,0.4);background:rgba(180,30,30,0.15);">
+                <div style="display:flex;gap:3px;height:${mergedSpan*28-8}px;align-items:stretch;">${blocksHtml}</div>
+              </td>`;
+            }
+          } else {
+            const { game, span } = entries[0];
+            cells += `<td rowspan="${span}" style="padding:3px;vertical-align:top;border-right:1px solid rgba(253,184,19,0.15);background:rgba(22,47,82,0.9);">
+              ${gameBlock(game, span, false, false)}
+            </td>`;
+          }
+        } else if (!bodyMap[bk]) {
+          cells += `<td ${emptyTd}></td>`;
+        }
+      });
+
+      cells += `<td ${timeTd}>${label}</td>`;
+      tr.innerHTML = cells;
+      tbodyEl.appendChild(tr);
+    });
+    pt.appendChild(tbodyEl);
+
+    const tableWrap = document.createElement('div');
+    tableWrap.style.cssText = 'border-radius:12px;border:1px solid var(--border);overflow-x:auto;background:var(--card);margin-bottom:28px;';
+    tableWrap.appendChild(pt);
+    container.appendChild(tableWrap);
   });
 
-  // ── Warning banner ──
+  // ── Warning banner (aggregated across all dates) ──
   const warningEl = document.getElementById('md-overlap-warning');
   if (warningEl) {
-    if (overlapWarnings.length) {
+    if (allOverlapWarnings.length) {
       const fmt = m => `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;
-      const items = overlapWarnings.map(w =>
+      const items = allOverlapWarnings.map(w =>
         `<li style="margin:4px 0;">
           <span style="color:var(--yellow);font-weight:700;">${w.pitch}</span>
+          ${w.date ? `<span style="color:var(--muted);font-size:0.7rem;"> (${w.date})</span>` : ''}
           — <span style="color:#ff8080;">${w.gameA.div}</span> (${fmt(w.aStart)}–${fmt(w.aEnd)})
           overlaps with <span style="color:#ff8080;">${w.gameB.div}</span> (${fmt(w.bStart)}–${fmt(w.bEnd)})
           <span style="color:var(--muted);font-size:0.7rem;">· ${w.gameA.home} vs ${w.gameA.away} &amp; ${w.gameB.home} vs ${w.gameB.away}</span>
@@ -620,7 +872,7 @@ function renderMatchDay() {
         <div style="display:flex;align-items:flex-start;gap:10px;">
           <span style="font-size:1.2rem;line-height:1.3;">⚠️</span>
           <div>
-            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#ff6b6b;margin-bottom:4px;">Pitch Conflict${overlapWarnings.length > 1 ? 's' : ''} Detected</div>
+            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#ff6b6b;margin-bottom:4px;">Pitch Conflict${allOverlapWarnings.length > 1 ? 's' : ''} Detected</div>
             <ul style="list-style:none;padding:0;margin:0;font-size:0.78rem;line-height:1.5;">${items}</ul>
           </div>
         </div>`;
@@ -630,148 +882,76 @@ function renderMatchDay() {
     }
   }
 
-  // ── Build startMap / bodyMap ──
-  // For pitches with conflicts we need to track ALL games starting at a given slot,
-  // not just the first one.  Use startMap[key] = [ {game, span}, ... ]
-  const startMap = {};   // `${si}-${pi}` → [ {game, span}, ... ]
-  const bodyMap  = {};   // `body-${si}-${pi}` → true  (slot is covered by a rowspan)
-
-  pitches.forEach((p, pi) => {
-    const pGames = homeGames.filter(g => g.pitch === p);
-    pGames.forEach(g => {
-      const si = timeToIdx(g.ko);
-      if (si < 0) return;
-      const span = Math.ceil(g.gameLen / 15);
-      const key = `${si}-${pi}`;
-      if (!startMap[key]) startMap[key] = [];
-      startMap[key].push({ game: g, span });
-      // Only mark body slots for the FIRST game on this pitch at this slot
-      // (conflict games will be rendered side-by-side inside one cell, not as extra rowspans)
-      if (startMap[key].length === 1) {
-        for (let i = 0; i < span; i++) bodyMap[`body-${si+i}-${pi}`] = true;
-      }
-    });
-    // For conflicting pitches: merge the rowspans so the cell covers all overlapping slots
-    if (conflictGames[pi].size > 0) {
-      // Find the combined slot range across all conflicting games on this pitch
-      let minSi = Infinity, maxSiEnd = 0;
-      conflictGames[pi].forEach(g => {
-        const si = timeToIdx(g.ko);
-        if (si < 0) return;
-        const span = Math.ceil(g.gameLen / 15);
-        if (si < minSi) minSi = si;
-        if (si + span > maxSiEnd) maxSiEnd = si + span;
-      });
-      // Store merged info on the first slot
-      const key = `${minSi}-${pi}`;
-      startMap[key] = startMap[key] || [];
-      // tag the entry so the renderer knows to use the merged span
-      startMap[key]._mergedSpan = maxSiEnd - minSi;
-      startMap[key]._minSi = minSi;
-      // Mark all merged body slots
-      for (let i = minSi; i < maxSiEnd; i++) bodyMap[`body-${i}-${pi}`] = true;
-    }
-  });
-
-  // ── Game block HTML helper ──
-  function gameBlock(game, span, isConflict, halfWidth) {
-    const isShort = span <= 3;
-    const dc = mdDivColor(game.div);
-    const h = span * 28 - 8;
-    const blockBg     = isConflict ? 'linear-gradient(135deg,#5a0a0a 0%,#8b1a1a 100%)' : 'linear-gradient(135deg,var(--blue2) 0%,#1a4a80 100%)';
-    const blockBorder = isConflict ? 'rgba(231,76,60,0.7)' : 'rgba(253,184,19,0.25)';
-    const shadow      = isConflict ? 'box-shadow:0 0 8px rgba(231,76,60,0.4);' : '';
-    const koColor     = isConflict ? '#ffaaaa' : 'var(--yellow)';
-    const divColor    = isConflict ? '#ff8080' : dc;
-    const widthStyle  = halfWidth ? 'width:50%;min-width:0;flex:1 1 0;' : 'width:100%;';
-    return `<div style="${widthStyle}background:${blockBg};border:1px solid ${blockBorder};border-radius:6px;padding:5px 7px;height:${h}px;display:flex;flex-direction:column;justify-content:center;gap:2px;${shadow}">
-      ${isConflict ? `<div style="font-size:0.55rem;font-weight:700;color:#ff6b6b;text-transform:uppercase;letter-spacing:0.08em;line-height:1;">⚠ Conflict</div>` : ''}
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:0.95rem;color:${koColor};line-height:1;">${game.ko}</div>
-      <div style="font-size:0.65rem;font-weight:700;color:${divColor};opacity:0.9;">${game.div}</div>
-      ${!isShort ? `<div style="font-size:0.72rem;font-weight:600;${/belmont fc/i.test(game.away)?'color:var(--yellow);':'color:#ffffff;'}">${game.away}</div>` : ''}
-      ${game.ref && !isShort ? `<div style="font-size:0.62rem;color:var(--muted);margin-top:1px;">Ref: ${game.ref}</div>` : ''}
-    </div>`;
+  if (!container.children.length) {
+    container.innerHTML = `<div style="padding:32px;text-align:center;color:var(--muted);font-size:0.85rem;">No home games with pitch assignments for the selected date(s)</div>`;
   }
-
-  const thStyle = `padding:11px 14px;text-align:center;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap;border-right:1px solid rgba(255,255,255,0.06);`;
-
-  const pitchInfo = {};
-  pitches.forEach(p => {
-    const pGames = homeGames.filter(g => g.pitch === p);
-    const lens = [...new Set(pGames.map(g => g.gameLen).filter(Boolean))];
-    pitchInfo[p] = lens.length === 1 ? `${lens[0]} mins` : lens.map(l=>`${l}m`).join('/');
-  });
-
-  let theadHtml = `<thead>
-    <tr style="background:var(--blue2);">
-      <th style="${thStyle}color:var(--muted);">Pitch &rarr;</th>`;
-  pitches.forEach(p => {
-    theadHtml += `<th style="${thStyle}color:var(--yellow);">${p}</th>`;
-  });
-  theadHtml += `<th style="${thStyle}color:var(--muted);">&larr; Pitch</th></tr>
-    <tr style="background:#0e2040;">
-      <th style="${thStyle}color:var(--muted);font-size:0.55rem;">Slot &rarr;</th>`;
-  pitches.forEach(p => {
-    theadHtml += `<th style="${thStyle}color:var(--muted);font-size:0.6rem;">${pitchInfo[p]||''}</th>`;
-  });
-  theadHtml += `<th style="${thStyle}font-size:0.55rem;color:var(--muted);">&larr; Slot</th></tr></thead>`;
-  pt.innerHTML = theadHtml;
-
-  const timeTd  = `style="padding:0 12px;height:28px;font-family:'Bebas Neue',sans-serif;font-size:0.85rem;color:var(--muted);background:#0b1a30;border-right:2px solid rgba(253,184,19,0.2);white-space:nowrap;vertical-align:middle;text-align:center;"`;
-  const emptyTd = `style="height:28px;border-right:1px solid rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);"`;
-
-  const tbodyEl = document.createElement('tbody');
-  slots.forEach((slotMins, si) => {
-    const label = minsToLabel(slotMins);
-    const tr = document.createElement('tr');
-    tr.style.borderBottom = '1px solid rgba(255,255,255,0.03)';
-    let cells = `<td ${timeTd}>${label}</td>`;
-
-    pitches.forEach((p, pi) => {
-      const sk  = `${si}-${pi}`;
-      const bk  = `body-${si}-${pi}`;
-      const entries = startMap[sk];
-
-      if (entries && entries.length) {
-        const hasConflict = conflictGames[pi].size > 0;
-
-        if (hasConflict) {
-          // ── Conflict cell: all conflicting games side-by-side in one rowspan cell ──
-          // Only render at the first (merged) slot for this pitch
-          if (si === entries._minSi) {
-            const mergedSpan = entries._mergedSpan;
-            // Gather all conflict games for this pitch in time order
-            const allConflicting = [...conflictGames[pi]].sort((a,b) => timeToMins(a.ko) - timeToMins(b.ko));
-            const blocksHtml = allConflicting.map(g => {
-              const span = Math.ceil(g.gameLen / 15);
-              return gameBlock(g, mergedSpan, true, allConflicting.length > 1);
-            }).join('');
-            cells += `<td rowspan="${mergedSpan}" style="padding:3px;vertical-align:top;border-right:1px solid rgba(231,76,60,0.4);background:rgba(180,30,30,0.15);">
-              <div style="display:flex;gap:3px;height:${mergedSpan*28-8}px;align-items:stretch;">${blocksHtml}</div>
-            </td>`;
-          }
-          // body slots already marked — skip
-        } else {
-          // ── Normal single-game cell ──
-          const { game, span } = entries[0];
-          cells += `<td rowspan="${span}" style="padding:3px;vertical-align:top;border-right:1px solid rgba(253,184,19,0.15);background:rgba(22,47,82,0.9);">
-            ${gameBlock(game, span, false, false)}
-          </td>`;
-        }
-      } else if (!bodyMap[bk]) {
-        cells += `<td ${emptyTd}></td>`;
-      }
-    });
-
-    cells += `<td ${timeTd}>${label}</td>`;
-    tr.innerHTML = cells;
-    tbodyEl.appendChild(tr);
-  });
-  pt.appendChild(tbodyEl);
-}
+};
 
 // Called after FIXTURES_DATA is populated by loadData()
 window._renderMatchDay = renderMatchDay;
+
+// Called when date filter changes (re-renders games table + pitches tables, no date-btn rebuild)
+window._renderMatchDayFiltered = function() {
+  const MD_GAMES = window._mdAllGames || [];
+  if (!MD_GAMES.length) return;
+
+  // Helpers (reuse stored or inline)
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function fmtDate(d) {
+    if (!d) return '';
+    return `${String(d.getDate()).padStart(2,'0')}-${MON[d.getMonth()]}-${String(d.getFullYear()).slice(-2)}`;
+  }
+  function confIcon(val) {
+    return val && val.toUpperCase() === 'Y'
+      ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#27ae60;flex-shrink:0;vertical-align:middle;"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 4.5L3.5 6.5L7.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`
+      : `<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#e67e22;flex-shrink:0;vertical-align:middle;"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 2.5L6.5 6.5M6.5 2.5L2.5 6.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>`;
+  }
+  function highlightBFC(name) {
+    return /belmont fc/i.test(name)
+      ? `<span style="color:var(--yellow);font-weight:800;">${name}</span>`
+      : `<span style="color:#ffffff;">${name}</span>`;
+  }
+  function teamCell(name, conf) {
+    return `<td style="padding:10px 14px;text-align:center;font-weight:600;font-size:0.84rem;"><span style="display:inline-flex;align-items:center;gap:6px;justify-content:center;">${highlightBFC(name)} ${confIcon(conf)}</span></td>`;
+  }
+  function refCell(name, conf) {
+    if (!name) return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;"></td>`;
+    return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;color:#ffffff;"><span style="display:inline-flex;align-items:center;gap:6px;justify-content:center;">${name} ${confIcon(conf)}</span></td>`;
+  }
+
+  const sel = window._mdSelectedDates;
+  const filteredGames = sel && sel.size > 0 ? MD_GAMES.filter(g => sel.has(g.dateFmt)) : MD_GAMES;
+  const sortedGames = [...filteredGames].sort((a,b) => a.dateKey - b.dateKey);
+
+  const tbody = document.getElementById('md-games-tbody');
+  if (tbody) {
+    tbody.innerHTML = '';
+    if (!sortedGames.length) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No games for the selected date(s)</td></tr>`;
+    } else {
+      sortedGames.forEach((g, i) => {
+        const dc = mdDivColor(g.div);
+        const tr = document.createElement('tr');
+        tr.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s;${i%2===1?'background:rgba(255,255,255,0.02)':''}`;
+        tr.onmouseover = () => tr.style.background = 'rgba(255,255,255,0.04)';
+        tr.onmouseout  = () => tr.style.background = i%2===1 ? 'rgba(255,255,255,0.02)' : '';
+        tr.innerHTML = `
+          <td style="padding:10px 14px;font-size:0.75rem;color:var(--muted);white-space:nowrap;">${g.dateFmt}</td>
+          <td style="padding:10px 14px;white-space:nowrap;"><span style="font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:4px;background:${dc}22;color:${dc};border:1px solid ${dc}44;">${g.div}</span></td>
+          ${teamCell(g.home, g.hConf)}
+          ${teamCell(g.away, g.aConf)}
+          <td style="padding:10px 14px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--yellow);">${g.ko}</td>
+          ${refCell(g.ref, g.refConf)}
+          <td style="padding:10px 14px;text-align:center;font-size:0.75rem;color:var(--muted);font-style:italic;">${g.comments||'—'}</td>
+          <td style="padding:10px 14px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#fdb813;background:rgba(253,184,19,0.07);">${g.pitch}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  }
+
+  if (window._renderMatchDayTables) window._renderMatchDayTables();
+};
 </script>
 </div>
 
