@@ -305,16 +305,17 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 
   <!-- Page subtitle -->
   <div style="margin-bottom:20px;">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.06em;color:var(--yellow);">Match Day — Fixtures &amp; Pitches</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.06em;color:var(--yellow);">Upcoming Games and Pitches</div>
     <div id="md-subtitle" style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:3px;">Belmont FC Home &amp; Away</div>
   </div>
 
   <!-- ── LEGEND ── -->
   <div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
     <span style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);">Confirmation:</span>
-    <span style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#8ba2c1"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#27ae60;"></span>Confirmed ✓</span>
-    <span style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#8ba2c1"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#c0392b;"></span>Not Confirmed ✗</span>
-    <span style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#8ba2c1"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(253,184,19,0.25);border:1px solid rgba(253,184,19,0.5);"></span>Pitch assignment</span>
+    <span style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#8ba2c1">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#27ae60;flex-shrink:0;"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 4.5L3.5 6.5L7.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Confirmed</span>
+    <span style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#8ba2c1">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#e67e22;flex-shrink:0;"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 2.5L6.5 6.5M6.5 2.5L2.5 6.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>Pending</span>
   </div>
 
   <!-- ── GAMES TABLE ── -->
@@ -703,17 +704,17 @@ function renderMatchDay() {
 
   let theadHtml = `<thead>
     <tr style="background:var(--blue2);">
-      <th style="${thStyle}color:var(--muted);">Pitch</th>`;
+      <th style="${thStyle}color:var(--muted);">Pitch &rarr;</th>`;
   pitches.forEach(p => {
     theadHtml += `<th style="${thStyle}color:var(--yellow);">${p}</th>`;
   });
-  theadHtml += `<th style="${thStyle}color:var(--muted);">Pitch</th></tr>
+  theadHtml += `<th style="${thStyle}color:var(--muted);">&larr; Pitch</th></tr>
     <tr style="background:#0e2040;">
-      <th style="${thStyle}color:var(--muted);font-size:0.55rem;">Slot</th>`;
+      <th style="${thStyle}color:var(--muted);font-size:0.55rem;">Slot &rarr;</th>`;
   pitches.forEach(p => {
     theadHtml += `<th style="${thStyle}color:var(--muted);font-size:0.6rem;">${pitchInfo[p]||''}</th>`;
   });
-  theadHtml += `<th style="${thStyle}font-size:0.55rem;color:var(--muted);"></th></tr></thead>`;
+  theadHtml += `<th style="${thStyle}font-size:0.55rem;color:var(--muted);">&larr; Slot</th></tr></thead>`;
   pt.innerHTML = theadHtml;
 
   const timeTd  = `style="padding:0 12px;height:28px;font-family:'Bebas Neue',sans-serif;font-size:0.85rem;color:var(--muted);background:#0b1a30;border-right:2px solid rgba(253,184,19,0.2);white-space:nowrap;vertical-align:middle;text-align:center;"`;
