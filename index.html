@@ -319,10 +319,13 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
   </div>
 
   <!-- ── DATE FILTER ── -->
-  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:var(--fbox);border:1px solid var(--fbox-b);border-radius:10px;">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:var(--fbox);border:1px solid var(--fbox-b);border-radius:10px;">
     <span style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;color:var(--yellow);opacity:0.85;white-space:nowrap;">Filter by Date</span>
-    <div id="md-date-btns" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
+    <div style="width:1px;height:18px;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
     <button id="md-date-all-btn" onclick="mdToggleAllDates()" style="background:var(--blue2);border:1px solid rgba(255,255,255,0.1);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--yellow)';this.style.color='var(--text)'" onmouseout="mdRefreshAllBtnStyle()">All Dates</button>
+    <button id="md-date-clear-btn" onclick="mdClearAllDates()" style="background:transparent;border:1px solid rgba(231,76,60,0.35);color:rgba(231,76,60,0.7);font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.borderColor='#e74c3c';this.style.color='#e74c3c'" onmouseout="this.style.borderColor='rgba(231,76,60,0.35)';this.style.color='rgba(231,76,60,0.7)'">Clear All</button>
+    <div style="width:1px;height:18px;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
+    <div id="md-date-btns" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
   </div>
 
   <!-- ── GAMES TABLE ── -->
@@ -379,25 +382,19 @@ window._mdSelectedDates = null; // null = not yet initialised; Set after first r
 
 function mdToggleAllDates() {
   const allDates = window._mdAllDates || [];
-  const sel = window._mdSelectedDates;
-  // If everything is selected (or nothing), select only nearest upcoming date
-  const todayKey = window._mdTodayKey || 0;
-  const future = allDates.filter(d => d.key >= todayKey);
-  const defaultFmt = future.length ? future[0].fmt : (allDates.length ? allDates[allDates.length-1].fmt : null);
-  if (!sel || sel.size === allDates.length) {
-    // deselect all → select default only
-    window._mdSelectedDates = defaultFmt ? new Set([defaultFmt]) : new Set(allDates.map(d => d.fmt));
-  } else {
-    // select all
-    window._mdSelectedDates = new Set(allDates.map(d => d.fmt));
-  }
+  window._mdSelectedDates = new Set(allDates.map(d => d.fmt));
+  mdApplyDateFilter();
+}
+
+function mdClearAllDates() {
+  window._mdSelectedDates = new Set();
   mdApplyDateFilter();
 }
 
 function mdToggleDate(fmt) {
   const sel = window._mdSelectedDates || new Set();
   if (sel.has(fmt)) {
-    if (sel.size > 1) sel.delete(fmt); // prevent empty selection
+    sel.delete(fmt);
   } else {
     sel.add(fmt);
   }
@@ -540,13 +537,12 @@ function renderMatchDay() {
   // Initialise selection on first load (preserve existing selection if valid)
   const validFmts = new Set(allDates.map(d => d.fmt));
   if (!window._mdSelectedDates) {
-    window._mdSelectedDates = defaultDate ? new Set([defaultDate]) : new Set(allDates.map(d => d.fmt));
+    window._mdSelectedDates = new Set();
   } else {
     // Remove any stale dates no longer in data
     for (const f of [...window._mdSelectedDates]) {
       if (!validFmts.has(f)) window._mdSelectedDates.delete(f);
     }
-    if (window._mdSelectedDates.size === 0 && defaultDate) window._mdSelectedDates.add(defaultDate);
   }
 
   // ── Build date filter buttons ──
@@ -602,12 +598,17 @@ function renderMatchDay() {
   } else if (!sortedGames.length) {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No games for the selected date(s)</td></tr>`;
   } else {
+    let dateGroupIdx = -1;
+    let lastDateKey = null;
     sortedGames.forEach((g, i) => {
+      if (g.dateKey !== lastDateKey) { dateGroupIdx++; lastDateKey = g.dateKey; }
+      const isAlt = dateGroupIdx % 2 === 1;
+      const rowBg = isAlt ? 'rgba(253,184,19,0.04)' : '';
       const dc = mdDivColor(g.div);
       const tr = document.createElement('tr');
-      tr.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s;${i%2===1?'background:rgba(255,255,255,0.02)':''}`;
-      tr.onmouseover = () => tr.style.background = 'rgba(255,255,255,0.04)';
-      tr.onmouseout  = () => tr.style.background = i%2===1 ? 'rgba(255,255,255,0.02)' : '';
+      tr.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s;${rowBg?`background:${rowBg}`:''}`;
+      tr.onmouseover = () => tr.style.background = 'rgba(255,255,255,0.06)';
+      tr.onmouseout  = () => tr.style.background = rowBg;
       tr.innerHTML = `
         <td style="padding:10px 14px;font-size:0.75rem;color:var(--muted);white-space:nowrap;">${g.dateFmt}</td>
         <td style="padding:10px 14px;white-space:nowrap;"><span style="font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:4px;background:${dc}22;color:${dc};border:1px solid ${dc}44;">${g.div}</span></td>
@@ -929,12 +930,17 @@ window._renderMatchDayFiltered = function() {
     if (!sortedGames.length) {
       tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No games for the selected date(s)</td></tr>`;
     } else {
+      let dateGroupIdx = -1;
+      let lastDateKey = null;
       sortedGames.forEach((g, i) => {
+        if (g.dateKey !== lastDateKey) { dateGroupIdx++; lastDateKey = g.dateKey; }
+        const isAlt = dateGroupIdx % 2 === 1;
+        const rowBg = isAlt ? 'rgba(253,184,19,0.04)' : '';
         const dc = mdDivColor(g.div);
         const tr = document.createElement('tr');
-        tr.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s;${i%2===1?'background:rgba(255,255,255,0.02)':''}`;
-        tr.onmouseover = () => tr.style.background = 'rgba(255,255,255,0.04)';
-        tr.onmouseout  = () => tr.style.background = i%2===1 ? 'rgba(255,255,255,0.02)' : '';
+        tr.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s;${rowBg?`background:${rowBg}`:''}`;
+        tr.onmouseover = () => tr.style.background = 'rgba(255,255,255,0.06)';
+        tr.onmouseout  = () => tr.style.background = rowBg;
         tr.innerHTML = `
           <td style="padding:10px 14px;font-size:0.75rem;color:var(--muted);white-space:nowrap;">${g.dateFmt}</td>
           <td style="padding:10px 14px;white-space:nowrap;"><span style="font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:4px;background:${dc}22;color:${dc};border:1px solid ${dc}44;">${g.div}</span></td>
