@@ -311,7 +311,7 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 
   <!-- ── LEGEND ── -->
   <div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
-    <span style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);">Confirmation:</span>
+    <span style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);">Status:</span>
     <span style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#8ba2c1">
       <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#27ae60;flex-shrink:0;"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 4.5L3.5 6.5L7.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Confirmed</span>
     <span style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#8ba2c1">
@@ -488,10 +488,10 @@ function renderMatchDay() {
   const filtered = selVal === 'all' ? MD_GAMES : MD_GAMES.filter(g => g.dateFmt === selVal);
 
   /* ── helpers ── */
-  function confStyle(val) {
+  function confIcon(val) {
     return val && val.toUpperCase() === 'Y'
-      ? 'background:rgba(39,174,96,0.18);color:#2ecc71;border-left:2px solid #27ae60;'
-      : 'background:rgba(192,57,43,0.18);color:#e74c3c;border-left:2px solid #c0392b;';
+      ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#27ae60;flex-shrink:0;vertical-align:middle;"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 4.5L3.5 6.5L7.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`
+      : `<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#e67e22;flex-shrink:0;vertical-align:middle;"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 2.5L6.5 6.5M6.5 2.5L2.5 6.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>`;
   }
   function highlightBFC(name) {
     return /belmont fc/i.test(name)
@@ -499,11 +499,11 @@ function renderMatchDay() {
       : `<span style="color:#ffffff;">${name}</span>`;
   }
   function teamCell(name, conf) {
-    return `<td style="padding:10px 14px;text-align:center;font-weight:600;font-size:0.84rem;${confStyle(conf)}">${highlightBFC(name)} <span style="font-size:0.7rem;opacity:0.8">${conf&&conf.toUpperCase()==='Y'?'✓':'✗'}</span></td>`;
+    return `<td style="padding:10px 14px;text-align:center;font-weight:600;font-size:0.84rem;"><span style="display:inline-flex;align-items:center;gap:6px;justify-content:center;">${highlightBFC(name)} ${confIcon(conf)}</span></td>`;
   }
   function refCell(name, conf) {
     if (!name) return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;"></td>`;
-    return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;color:#ffffff;${confStyle(conf)}">${name} <span style="opacity:0.8">${conf&&conf.toUpperCase()==='Y'?'✓':'✗'}</span></td>`;
+    return `<td style="padding:10px 14px;text-align:center;font-size:0.78rem;color:#ffffff;"><span style="display:inline-flex;align-items:center;gap:6px;justify-content:center;">${name} ${confIcon(conf)}</span></td>`;
   }
 
   /* ── Games Table (always shows all games, unaffected by date filter) ── */
