@@ -286,7 +286,7 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
   <div class="hdr-r">
     <div class="lbl">Files Loaded</div>
     <div class="val" id="filesLoaded" style="font-size:0.75rem;letter-spacing:0.03em;color:var(--muted)">—</div>
-    <div class="lbl" style="margin-top:8px">Last Updated</div>
+    <div class="lbl" style="margin-top:8px">Results Last Updated</div>
     <div class="val" id="lastUpdated">—</div>
   </div>
 </div>
@@ -318,14 +318,33 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
       <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#e67e22;flex-shrink:0;"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 2.5L6.5 6.5M6.5 2.5L2.5 6.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>Pending</span>
   </div>
 
-  <!-- ── DATE FILTER ── -->
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:var(--fbox);border:1px solid var(--fbox-b);border-radius:10px;">
-    <span style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;color:var(--yellow);opacity:0.85;white-space:nowrap;">Filter by Date</span>
-    <div style="width:1px;height:18px;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
-    <button id="md-date-all-btn" onclick="mdToggleAllDates()" style="background:var(--blue2);border:1px solid rgba(255,255,255,0.1);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--yellow)';this.style.color='var(--text)'" onmouseout="mdRefreshAllBtnStyle()">All Dates</button>
-    <button id="md-date-clear-btn" onclick="mdClearAllDates()" style="background:transparent;border:1px solid rgba(231,76,60,0.35);color:rgba(231,76,60,0.7);font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.borderColor='#e74c3c';this.style.color='#e74c3c'" onmouseout="this.style.borderColor='rgba(231,76,60,0.35)';this.style.color='rgba(231,76,60,0.7)'">Clear All</button>
-    <div style="width:1px;height:18px;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
-    <div id="md-date-btns" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
+  <!-- ── FILTERS BAR ── -->
+  <div id="md-filters-bar" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;padding:12px 16px;background:var(--fbox);border:1px solid var(--fbox-b);border-radius:10px;">
+
+    <!-- Row 1: Date filter + Print button -->
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;color:var(--yellow);opacity:0.85;white-space:nowrap;">Filter by Date</span>
+      <div style="width:1px;height:18px;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
+      <button id="md-date-all-btn" onclick="mdToggleAllDates()" style="background:var(--blue2);border:1px solid rgba(255,255,255,0.1);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--yellow)';this.style.color='var(--text)'" onmouseout="mdRefreshAllBtnStyle()">All Dates</button>
+      <button id="md-date-clear-btn" onclick="mdClearAllDates()" style="background:transparent;border:1px solid rgba(231,76,60,0.35);color:rgba(231,76,60,0.7);font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.borderColor='#e74c3c';this.style.color='#e74c3c'" onmouseout="this.style.borderColor='rgba(231,76,60,0.35)';this.style.color='rgba(231,76,60,0.7)'">Clear All</button>
+      <div style="width:1px;height:18px;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
+      <div id="md-date-btns" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex:1;"></div>
+      <button onclick="mdPrintFixtures()" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#1a4a80,#0e2d55);border:1px solid rgba(253,184,19,0.35);color:var(--yellow);font-family:'DM Sans',sans-serif;font-size:0.74rem;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.18s;flex-shrink:0;" onmouseover="this.style.borderColor='var(--yellow)';this.style.background='linear-gradient(135deg,#1f5a9e,#122f5a)'" onmouseout="this.style.borderColor='rgba(253,184,19,0.35)';this.style.background='linear-gradient(135deg,#1a4a80,#0e2d55)'">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="7" width="9" height="5" rx="1" stroke="#fdb813" stroke-width="1.2"/><path d="M4 7V4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v3" stroke="#fdb813" stroke-width="1.2"/><path d="M4 9.5h5" stroke="#fdb813" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Print Fixtures
+      </button>
+    </div>
+
+    <!-- Row 2: Age Group filter -->
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;color:var(--yellow);opacity:0.85;white-space:nowrap;">Filter by Age Group</span>
+      <div style="width:1px;height:18px;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
+      <button id="md-age-all-btn" onclick="mdToggleAllAges()" style="background:var(--blue2);border:1px solid rgba(255,255,255,0.1);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--yellow)';this.style.color='var(--text)'" onmouseout="mdRefreshAgeAllBtnStyle()">All Ages</button>
+      <button onclick="mdClearAllAges()" style="background:transparent;border:1px solid rgba(231,76,60,0.35);color:rgba(231,76,60,0.7);font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.borderColor='#e74c3c';this.style.color='#e74c3c'" onmouseout="this.style.borderColor='rgba(231,76,60,0.35)';this.style.color='rgba(231,76,60,0.7)'">Clear All</button>
+      <div style="width:1px;height:18px;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
+      <div id="md-age-btns" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex:1;"></div>
+    </div>
+
   </div>
 
   <!-- ── GAMES TABLE ── -->
@@ -389,6 +408,110 @@ function mdToggleAllDates() {
 function mdClearAllDates() {
   window._mdSelectedDates = new Set();
   mdApplyDateFilter();
+}
+
+// ── Age Group filter ──
+window._mdSelectedAges = null; // null = not yet initialised (defaults to empty)
+
+function mdToggleAllAges() {
+  const allAges = window._mdAllAges || [];
+  window._mdSelectedAges = new Set(allAges);
+  mdApplyAgeFilter();
+}
+
+function mdClearAllAges() {
+  window._mdSelectedAges = new Set();
+  mdApplyAgeFilter();
+}
+
+function mdToggleAge(age) {
+  const sel = window._mdSelectedAges || new Set();
+  if (sel.has(age)) { sel.delete(age); } else { sel.add(age); }
+  window._mdSelectedAges = sel;
+  mdApplyAgeFilter();
+}
+
+function mdRefreshAgeAllBtnStyle() {
+  const btn = document.getElementById('md-age-all-btn');
+  if (!btn) return;
+  const allAges = window._mdAllAges || [];
+  const sel = window._mdSelectedAges;
+  const allSelected = sel && sel.size === allAges.length && allAges.length > 0;
+  btn.style.background = allSelected ? 'var(--yellow)' : 'var(--blue2)';
+  btn.style.borderColor = allSelected ? 'var(--yellow)' : 'rgba(255,255,255,0.1)';
+  btn.style.color = allSelected ? 'var(--blue)' : 'var(--muted)';
+  btn.style.fontWeight = allSelected ? '700' : 'normal';
+}
+
+function mdApplyAgeFilter() {
+  mdRefreshAgeAllBtnStyle();
+  const allAges = window._mdAllAges || [];
+  const sel = window._mdSelectedAges || new Set();
+  allAges.forEach(age => {
+    const btn = document.getElementById(`md-age-btn-${age.replace(/[^a-zA-Z0-9]/g,'_')}`);
+    if (!btn) return;
+    const active = sel.has(age);
+    btn.style.background = active ? 'var(--yellow)' : 'var(--blue2)';
+    btn.style.borderColor = active ? 'var(--yellow)' : 'rgba(255,255,255,0.1)';
+    btn.style.color = active ? 'var(--blue)' : 'var(--muted)';
+    btn.style.fontWeight = active ? '700' : 'normal';
+  });
+  if (window._renderMatchDayFiltered) window._renderMatchDayFiltered();
+}
+
+// ── Print Fixtures ──
+function mdPrintFixtures() {
+  const btn = event.currentTarget || event.target;
+  const origText = btn.innerHTML;
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="#fdb813" stroke-width="1.2" stroke-dasharray="8 4"><animateTransform attributeName="transform" type="rotate" from="0 6.5 6.5" to="360 6.5 6.5" dur="0.8s" repeatCount="indefinite"/></circle></svg> Generating…`;
+  btn.disabled = true;
+
+  // Dynamically load html2canvas if not already loaded
+  function doCapture() {
+    const tab = document.getElementById('tab-matchday') || document.querySelector('[data-tab="matchday"]');
+    // Find the match day tab content panel
+    const target = document.getElementById('tab-match-day') || document.body;
+
+    html2canvas(target, {
+      backgroundColor: '#0a1628',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+      width: target.scrollWidth,
+      height: target.scrollHeight,
+      windowWidth: target.scrollWidth,
+      windowHeight: target.scrollHeight,
+    }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = `Belmont_FC_Fixtures_${new Date().toISOString().slice(0,10)}.jpeg`;
+      link.href = canvas.toDataURL('image/jpeg', 0.92);
+      link.click();
+      btn.innerHTML = origText;
+      btn.disabled = false;
+    }).catch(err => {
+      console.error('Print error:', err);
+      btn.innerHTML = origText;
+      btn.disabled = false;
+      alert('Could not generate image. Please try again.');
+    });
+  }
+
+  if (window.html2canvas) {
+    doCapture();
+  } else {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    script.onload = doCapture;
+    script.onerror = () => {
+      btn.innerHTML = origText;
+      btn.disabled = false;
+      alert('Could not load print library. Check your internet connection.');
+    };
+    document.head.appendChild(script);
+  }
 }
 
 function mdToggleDate(fmt) {
@@ -513,6 +636,15 @@ function renderMatchDay() {
     };
   });
 
+  // ── Age group extraction (same logic as Results tab) ──
+  function mdGetAge(divStr) {
+    const s = String(divStr || '');
+    const isGirls = /girls/i.test(s);
+    const m = s.match(/U(\d+)\./i) || s.match(/U(\d+)/i) || s.match(/(\d+)\./i) || s.match(/(\d+)/i);
+    return m ? 'U' + m[1] + (isGirls ? 'G' : '') : 'Other';
+  }
+  MD_GAMES.forEach(g => { g.age = mdGetAge(g.div); });
+
   // Store all games globally for re-renders
   window._mdAllGames = MD_GAMES;
 
@@ -559,6 +691,31 @@ function renderMatchDay() {
   }
   mdRefreshAllBtnStyle();
 
+  // ── Build age group list & buttons ──
+  const allAges = [...new Set(MD_GAMES.map(g => g.age).filter(Boolean))].sort((a,b) => {
+    const na = parseInt(a.replace(/\D/g,'')) || 999;
+    const nb = parseInt(b.replace(/\D/g,'')) || 999;
+    if (na !== nb) return na - nb;
+    return a.localeCompare(b);
+  });
+  window._mdAllAges = allAges;
+
+  if (!window._mdSelectedAges) window._mdSelectedAges = new Set();
+  else { for (const a of [...window._mdSelectedAges]) { if (!allAges.includes(a)) window._mdSelectedAges.delete(a); } }
+
+  const ageBtnsEl = document.getElementById('md-age-btns');
+  if (ageBtnsEl) {
+    ageBtnsEl.innerHTML = allAges.map(age => {
+      const id = `md-age-btn-${age.replace(/[^a-zA-Z0-9]/g,'_')}`;
+      const active = window._mdSelectedAges.has(age);
+      return `<button id="${id}" onclick="mdToggleAge('${age}')"
+        style="background:${active?'var(--yellow)':'var(--blue2)'};border:1px solid ${active?'var(--yellow)':'rgba(255,255,255,0.1)'};color:${active?'var(--blue)':'var(--muted)'};font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.15s;font-weight:${active?'700':'normal'};"
+        onmouseover="this.style.borderColor='var(--yellow)';this.style.color=this.style.background==='rgb(253, 184, 19)'?'var(--blue)':'var(--text)'"
+        onmouseout="mdApplyAgeFilter()">${age}</button>`;
+    }).join('');
+  }
+  mdRefreshAgeAllBtnStyle();
+
   /* ── helpers ── */
   function confIcon(val) {
     return val && val.toUpperCase() === 'Y'
@@ -581,11 +738,14 @@ function renderMatchDay() {
   // Store helpers globally for re-use in table render
   window._mdHelpers = { confIcon, highlightBFC, teamCell, refCell, fmtDate, dateKey, timeToMins: null, minsToLabel: null };
 
-  /* ── Games Table: filtered by selected dates, descending order ── */
+  /* ── Games Table: filtered by selected dates + age groups ── */
   const sel = window._mdSelectedDates;
-  const filteredGames = sel && sel.size > 0
-    ? MD_GAMES.filter(g => sel.has(g.dateFmt))
-    : MD_GAMES;
+  const selAge = window._mdSelectedAges;
+  const filteredGames = MD_GAMES.filter(g => {
+    if (sel && sel.size > 0 && !sel.has(g.dateFmt)) return false;
+    if (selAge && selAge.size > 0 && !selAge.has(g.age)) return false;
+    return true;
+  });
 
   // Sort ascending (earliest first)
   const sortedGames = [...filteredGames].sort((a,b) => a.dateKey - b.dateKey);
@@ -659,7 +819,12 @@ window._renderMatchDayTables = function() {
 
   datesToShow.forEach(dateEntry => {
     const dateFmt = dateEntry.fmt;
-    const homeGames = MD_GAMES.filter(g => g.belHome && g.pitch && g.dateFmt === dateFmt)
+    const selAge2 = window._mdSelectedAges;
+    const homeGames = MD_GAMES.filter(g => {
+      if (!g.belHome || !g.pitch || g.dateFmt !== dateFmt) return false;
+      if (selAge2 && selAge2.size > 0 && !selAge2.has(g.age)) return false;
+      return true;
+    })
       .sort((a,b) => a.pitch.localeCompare(b.pitch));
     const pitches = [...new Set(homeGames.map(g => g.pitch))].sort();
 
@@ -921,7 +1086,12 @@ window._renderMatchDayFiltered = function() {
   }
 
   const sel = window._mdSelectedDates;
-  const filteredGames = sel && sel.size > 0 ? MD_GAMES.filter(g => sel.has(g.dateFmt)) : MD_GAMES;
+  const selAge = window._mdSelectedAges;
+  const filteredGames = MD_GAMES.filter(g => {
+    if (sel && sel.size > 0 && !sel.has(g.dateFmt)) return false;
+    if (selAge && selAge.size > 0 && !selAge.has(g.age)) return false;
+    return true;
+  });
   const sortedGames = [...filteredGames].sort((a,b) => a.dateKey - b.dateKey);
 
   const tbody = document.getElementById('md-games-tbody');
