@@ -466,36 +466,98 @@ function mdPrintFixtures() {
   btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="#fdb813" stroke-width="1.2" stroke-dasharray="8 4"><animateTransform attributeName="transform" type="rotate" from="0 6.5 6.5" to="360 6.5 6.5" dur="0.8s" repeatCount="indefinite"/></circle></svg> Generating…`;
   btn.disabled = true;
 
-  // Dynamically load html2canvas if not already loaded
   function doCapture() {
-    const tab = document.getElementById('tab-matchday') || document.querySelector('[data-tab="matchday"]');
-    // Find the match day tab content panel
     const target = document.getElementById('tab-match-day') || document.body;
 
-    html2canvas(target, {
-      backgroundColor: '#0a1628',
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-      scrollX: 0,
-      scrollY: 0,
-      width: target.scrollWidth,
-      height: target.scrollHeight,
-      windowWidth: target.scrollWidth,
-      windowHeight: target.scrollHeight,
-    }).then(canvas => {
-      const link = document.createElement('a');
-      link.download = `Belmont_FC_Fixtures_${new Date().toISOString().slice(0,10)}.jpeg`;
-      link.href = canvas.toDataURL('image/jpeg', 0.92);
-      link.click();
-      btn.innerHTML = origText;
-      btn.disabled = false;
-    }).catch(err => {
-      console.error('Print error:', err);
-      btn.innerHTML = origText;
-      btn.disabled = false;
-      alert('Could not generate image. Please try again.');
+    // ── Temporarily remove all width/overflow constraints so the full
+    //    content renders at its natural width (fixes mobile cropping) ──
+    const overridden = [];
+    function forceWide(el) {
+      const saved = {
+        el,
+        minWidth:   el.style.minWidth,
+        maxWidth:   el.style.maxWidth,
+        width:      el.style.width,
+        overflowX:  el.style.overflowX,
+      };
+      overridden.push(saved);
+      el.style.minWidth  = 'max-content';
+      el.style.maxWidth  = 'none';
+      el.style.width     = 'max-content';
+      el.style.overflowX = 'visible';
+    }
+
+    // Override the target panel and every horizontally-scrollable wrapper inside it
+    forceWide(target);
+    target.querySelectorAll('*').forEach(el => {
+      const cs = getComputedStyle(el);
+      if (cs.overflowX === 'auto' || cs.overflowX === 'scroll' ||
+          cs.overflowX === 'hidden' || el.scrollWidth > el.clientWidth + 2) {
+        forceWide(el);
+      }
+    });
+
+    // Also temporarily widen the body/html so html2canvas sees the full layout
+    const savedBodyWidth    = document.body.style.width;
+    const savedBodyOverflow = document.body.style.overflowX;
+    const savedHtmlOverflow = document.documentElement.style.overflowX;
+    document.body.style.width      = 'max-content';
+    document.body.style.overflowX  = 'visible';
+    document.documentElement.style.overflowX = 'visible';
+
+    // Let the browser reflow, then measure & capture
+    requestAnimationFrame(() => {
+      const fullWidth  = target.scrollWidth;
+      const fullHeight = target.scrollHeight;
+
+      html2canvas(target, {
+        backgroundColor: '#0a1628',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        x: 0,
+        y: 0,
+        width: fullWidth,
+        height: fullHeight,
+        windowWidth: fullWidth,
+        windowHeight: fullHeight,
+      }).then(canvas => {
+        // Restore everything
+        overridden.forEach(s => {
+          s.el.style.minWidth  = s.minWidth;
+          s.el.style.maxWidth  = s.maxWidth;
+          s.el.style.width     = s.width;
+          s.el.style.overflowX = s.overflowX;
+        });
+        document.body.style.width      = savedBodyWidth;
+        document.body.style.overflowX  = savedBodyOverflow;
+        document.documentElement.style.overflowX = savedHtmlOverflow;
+
+        const link = document.createElement('a');
+        link.download = `Belmont_FC_Fixtures_${new Date().toISOString().slice(0,10)}.jpeg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.92);
+        link.click();
+        btn.innerHTML = origText;
+        btn.disabled = false;
+      }).catch(err => {
+        // Restore on error too
+        overridden.forEach(s => {
+          s.el.style.minWidth  = s.minWidth;
+          s.el.style.maxWidth  = s.maxWidth;
+          s.el.style.width     = s.width;
+          s.el.style.overflowX = s.overflowX;
+        });
+        document.body.style.width      = savedBodyWidth;
+        document.body.style.overflowX  = savedBodyOverflow;
+        document.documentElement.style.overflowX = savedHtmlOverflow;
+        console.error('Print error:', err);
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        alert('Could not generate image. Please try again.');
+      });
     });
   }
 
