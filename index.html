@@ -630,59 +630,33 @@ function renderMatchDay() {
     return '';
   }
 
-  // Parse a date string into a JS Date (handles DD-Mon-YY, DD/MM/YYYY, YYYY-MM-DD, etc.)
-  const MONTHS = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11 };
-  function parseDate(s) {
-    if (!s) return null;
-    s = s.trim();
-    // DD-Mon-YY or DD-Mon-YYYY  e.g. "25-Apr-26" or "25-Apr-2026"
-    let m = s.match(/^(\d{1,2})[-\/\s]([A-Za-z]{3})[-\/\s](\d{2,4})$/);
-    if (m) {
-      const mo = MONTHS[m[2].toLowerCase()];
-      if (mo !== undefined) {
-        let yr = parseInt(m[3]);
-        if (yr < 100) yr += 2000;
-        return new Date(yr, mo, parseInt(m[1]));
-      }
-    }
-    // DD/MM/YYYY
-    m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (m) return new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
-    // YYYY-MM-DD
-    m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (m) return new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
-    // Try native parse as last resort
-    const d = new Date(s);
-    return isNaN(d) ? null : d;
-  }
-
-  // Format a JS Date as DD-MMM-YY
+  // Format a YYYY-MM-DD string as DD-MMM-YY for display
   const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  function fmtDate(d) {
-    if (!d) return '';
-    const dd  = String(d.getDate()).padStart(2,'0');
-    const mon = MON[d.getMonth()];
-    const yy  = String(d.getFullYear()).slice(-2);
+  function fmtDateSort(ds) {
+    if (!ds) return '';
+    const m = ds.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return ds; // fallback: return as-is
+    const yy  = String(parseInt(m[1])).slice(-2);
+    const mon = MON[parseInt(m[2]) - 1];
+    const dd  = m[3];
     return `${dd}-${mon}-${yy}`;
   }
 
-  // Sortable key for a date (YYYYMMDD integer)
-  function dateKey(d) {
-    if (!d) return 0;
-    return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+  // dateKey: YYYYMMDD integer derived directly from Date Sort string
+  function dateKey(ds) {
+    if (!ds) return 0;
+    return parseInt(ds.replace(/-/g, '')) || 0;
   }
 
   // Map raw rows → game objects
   const MD_GAMES = raw.map(r => {
-    const home = fc(r,'Home Team');
-    const away = fc(r,'Away Team');
-    const rawDate = fc(r,'Date');
-    const parsed  = parseDate(rawDate);
+    const home      = fc(r,'Home Team');
+    const away      = fc(r,'Away Team');
+    const dateSort  = fc(r,'Date Sort');   // YYYY-MM-DD from sheet
     return {
-      dateRaw:  rawDate,
-      dateFmt:  parsed ? fmtDate(parsed) : rawDate,
-      dateObj:  parsed,
-      dateKey:  dateKey(parsed),
+      dateSort,
+      dateFmt:  fmtDateSort(dateSort),
+      dateKey:  dateKey(dateSort),
       div:      fc(r,'Division'),
       home,
       hConf:    fc(r,'H Conf'),
@@ -711,14 +685,14 @@ function renderMatchDay() {
   window._mdAllGames = MD_GAMES;
 
   // ── Build sorted date list (ascending for buttons, descending for display) ──
-  const todayKey = dateKey(new Date());
+  const todayKey = dateKey(new Date().toISOString().slice(0,10));
   window._mdTodayKey = todayKey;
 
   const allDates = [...new Map(
-    MD_GAMES.filter(g => g.dateObj)
+    MD_GAMES.filter(g => g.dateKey > 0)
       .sort((a,b) => a.dateKey - b.dateKey)
       .map(g => [g.dateFmt, g])
-  ).values()].map(g => ({ fmt: g.dateFmt, key: g.dateKey, obj: g.dateObj }));
+  ).values()].map(g => ({ fmt: g.dateFmt, key: g.dateKey }));
   window._mdAllDates = allDates;
 
   // Determine "most immediate" date: closest upcoming, or most recent past
@@ -798,7 +772,7 @@ function renderMatchDay() {
   }
 
   // Store helpers globally for re-use in table render
-  window._mdHelpers = { confIcon, highlightBFC, teamCell, refCell, fmtDate, dateKey, timeToMins: null, minsToLabel: null };
+  window._mdHelpers = { confIcon, highlightBFC, teamCell, refCell };
 
   /* ── Games Table: filtered by selected dates + age groups ── */
   const sel = window._mdSelectedDates;
@@ -1123,12 +1097,7 @@ window._renderMatchDayFiltered = function() {
   const MD_GAMES = window._mdAllGames || [];
   if (!MD_GAMES.length) return;
 
-  // Helpers (reuse stored or inline)
-  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  function fmtDate(d) {
-    if (!d) return '';
-    return `${String(d.getDate()).padStart(2,'0')}-${MON[d.getMonth()]}-${String(d.getFullYear()).slice(-2)}`;
-  }
+  // Helpers
   function confIcon(val) {
     return val && val.toUpperCase() === 'Y'
       ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#27ae60;flex-shrink:0;vertical-align:middle;"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 4.5L3.5 6.5L7.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`
