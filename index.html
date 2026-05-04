@@ -630,18 +630,6 @@ function renderMatchDay() {
     return '';
   }
 
-  // Format a YYYY-MM-DD string as DD-MMM-YY for display
-  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  function fmtDateSort(ds) {
-    if (!ds) return '';
-    const m = ds.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!m) return ds; // fallback: return as-is
-    const yy  = String(parseInt(m[1])).slice(-2);
-    const mon = MON[parseInt(m[2]) - 1];
-    const dd  = m[3];
-    return `${dd}-${mon}-${yy}`;
-  }
-
   // dateKey: YYYYMMDD integer derived directly from Date Sort string
   function dateKey(ds) {
     if (!ds) return 0;
@@ -652,10 +640,11 @@ function renderMatchDay() {
   const MD_GAMES = raw.map(r => {
     const home      = fc(r,'Home Team');
     const away      = fc(r,'Away Team');
-    const dateSort  = fc(r,'Date Sort');   // YYYY-MM-DD from sheet
+    const dateSort  = fc(r,'Date Sort');   // YYYY-MM-DD — used for sorting only
+    const dateFmt   = fc(r,'Date');        // DD-MMM-YY — used for display
     return {
       dateSort,
-      dateFmt:  fmtDateSort(dateSort),
+      dateFmt,
       dateKey:  dateKey(dateSort),
       div:      fc(r,'Division'),
       home,
