@@ -304,7 +304,7 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 
   <!-- Page subtitle -->
   <div style="margin-bottom:20px;">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.06em;color:var(--yellow);">Upcoming Games and Pitches</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.06em;color:var(--yellow);">Upcoming Fixtures</div>
     <div id="md-subtitle" style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:3px;">Belmont FC Home &amp; Away</div>
   </div>
 
@@ -328,10 +328,18 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
       <button id="md-date-clear-btn" onclick="mdClearAllDates()" style="background:transparent;border:1px solid rgba(231,76,60,0.35);color:rgba(231,76,60,0.7);font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.borderColor='#e74c3c';this.style.color='#e74c3c'" onmouseout="this.style.borderColor='rgba(231,76,60,0.35)';this.style.color='rgba(231,76,60,0.7)'">Clear All</button>
       <div style="width:1px;height:18px;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
       <div id="md-date-btns" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex:1;"></div>
-      <button onclick="mdPrintFixtures()" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#1a4a80,#0e2d55);border:1px solid rgba(253,184,19,0.35);color:var(--yellow);font-family:'DM Sans',sans-serif;font-size:0.74rem;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.18s;flex-shrink:0;" onmouseover="this.style.borderColor='var(--yellow)';this.style.background='linear-gradient(135deg,#1f5a9e,#122f5a)'" onmouseout="this.style.borderColor='rgba(253,184,19,0.35)';this.style.background='linear-gradient(135deg,#1a4a80,#0e2d55)'">
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="7" width="9" height="5" rx="1" stroke="#fdb813" stroke-width="1.2"/><path d="M4 7V4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v3" stroke="#fdb813" stroke-width="1.2"/><path d="M4 9.5h5" stroke="#fdb813" stroke-width="1.2" stroke-linecap="round"/></svg>
-        Print Fixtures
-      </button>
+      <div style="margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+        <button onclick="mdPrintFixtures()" style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#1a4a80,#0e2d55);border:1px solid rgba(253,184,19,0.35);color:var(--yellow);font-family:'DM Sans',sans-serif;font-size:0.74rem;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.18s;" onmouseover="this.style.borderColor='var(--yellow)';this.style.background='linear-gradient(135deg,#1f5a9e,#122f5a)'" onmouseout="this.style.borderColor='rgba(253,184,19,0.35)';this.style.background='linear-gradient(135deg,#1a4a80,#0e2d55)'">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="7" width="9" height="5" rx="1" stroke="#fdb813" stroke-width="1.2"/><path d="M4 7V4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v3" stroke="#fdb813" stroke-width="1.2"/><path d="M4 9.5h5" stroke="#fdb813" stroke-width="1.2" stroke-linecap="round"/></svg>
+          Print Fixtures
+        </button>
+        <div style="display:flex;align-items:center;gap:5px;">
+          <span style="font-size:0.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap;">Print:</span>
+          <button id="md-print-mode-games" onclick="mdSetPrintMode('games',this)" style="background:var(--blue2);border:1px solid rgba(255,255,255,0.1);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.68rem;padding:3px 9px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--yellow)';this.style.color='var(--text)'" onmouseout="mdRefreshPrintModeBtns()">Games</button>
+          <button id="md-print-mode-pitches" onclick="mdSetPrintMode('pitches',this)" style="background:var(--blue2);border:1px solid rgba(255,255,255,0.1);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.68rem;padding:3px 9px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--yellow)';this.style.color='var(--text)'" onmouseout="mdRefreshPrintModeBtns()">Pitches</button>
+          <button id="md-print-mode-all" onclick="mdSetPrintMode('all',this)" style="background:var(--yellow);border:1px solid var(--yellow);color:var(--blue);font-family:'DM Sans',sans-serif;font-size:0.68rem;font-weight:700;padding:3px 9px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:all 0.15s;">All</button>
+        </div>
+      </div>
     </div>
 
     <!-- Row 2: Age Group filter -->
@@ -347,7 +355,9 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
   </div>
 
   <!-- ── GAMES TABLE ── -->
-  <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--yellow);margin-bottom:10px;">Games</div>
+  <div id="md-games-section">
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--yellow);">Games</div>
+  <div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:3px;margin-bottom:10px;">Belmont FC All Games</div>
   <div style="border-radius:12px;border:1px solid var(--border);overflow-x:auto;background:var(--card);margin-bottom:36px;">
     <table id="md-games-table" style="width:100%;border-collapse:collapse;font-size:0.84rem;min-width:800px;">
       <thead>
@@ -365,8 +375,10 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
       <tbody id="md-games-tbody"></tbody>
     </table>
   </div>
+  </div><!-- end md-games-section -->
 
   <!-- ── PITCHES SECTION ── -->
+  <div id="md-pitches-section">
   <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--yellow);">Pitches</div>
   <div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:3px;margin-bottom:10px;">Belmont FC Home Games</div>
   <!-- ── OVERLAP WARNING ── -->
@@ -374,6 +386,7 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 
   <!-- ── PITCHES TABLES CONTAINER (one per selected date) ── -->
   <div id="md-pitches-container"></div>
+  </div><!-- end md-pitches-section -->
 
 </div>
 
@@ -459,6 +472,26 @@ function mdApplyAgeFilter() {
   if (window._renderMatchDayFiltered) window._renderMatchDayFiltered();
 }
 
+// ── Print Mode ──
+window._mdPrintMode = 'all'; // 'all' | 'games' | 'pitches'
+
+function mdSetPrintMode(mode, btn) {
+  window._mdPrintMode = mode;
+  mdRefreshPrintModeBtns();
+}
+
+function mdRefreshPrintModeBtns() {
+  ['games','pitches','all'].forEach(m => {
+    const b = document.getElementById('md-print-mode-' + m);
+    if (!b) return;
+    const active = window._mdPrintMode === m;
+    b.style.background   = active ? 'var(--yellow)' : 'var(--blue2)';
+    b.style.borderColor  = active ? 'var(--yellow)' : 'rgba(255,255,255,0.1)';
+    b.style.color        = active ? 'var(--blue)'   : 'var(--muted)';
+    b.style.fontWeight   = active ? '700'           : 'normal';
+  });
+}
+
 // ── Print Fixtures ──
 function mdPrintFixtures() {
   const btn = event.currentTarget || event.target;
@@ -468,6 +501,15 @@ function mdPrintFixtures() {
 
   function doCapture() {
     const target = document.getElementById('tab-match-day') || document.body;
+    const mode = window._mdPrintMode || 'all';
+
+    // ── Temporarily hide sections based on print mode ──
+    const gamesSection  = document.getElementById('md-games-section');
+    const pitchSection  = document.getElementById('md-pitches-section');
+    let savedGamesDisplay  = '';
+    let savedPitchDisplay  = '';
+    if (mode === 'pitches' && gamesSection)  { savedGamesDisplay = gamesSection.style.display;  gamesSection.style.display  = 'none'; }
+    if (mode === 'games'   && pitchSection)  { savedPitchDisplay = pitchSection.style.display;  pitchSection.style.display  = 'none'; }
 
     // ── Temporarily remove all width/overflow constraints so the full
     //    content renders at its natural width (fixes mobile cropping) ──
@@ -535,6 +577,8 @@ function mdPrintFixtures() {
         document.body.style.width      = savedBodyWidth;
         document.body.style.overflowX  = savedBodyOverflow;
         document.documentElement.style.overflowX = savedHtmlOverflow;
+        if (gamesSection) gamesSection.style.display = savedGamesDisplay;
+        if (pitchSection) pitchSection.style.display = savedPitchDisplay;
 
         const link = document.createElement('a');
         link.download = `Belmont_FC_Fixtures_${new Date().toISOString().slice(0,10)}.jpeg`;
@@ -553,6 +597,8 @@ function mdPrintFixtures() {
         document.body.style.width      = savedBodyWidth;
         document.body.style.overflowX  = savedBodyOverflow;
         document.documentElement.style.overflowX = savedHtmlOverflow;
+        if (gamesSection) gamesSection.style.display = savedGamesDisplay;
+        if (pitchSection) pitchSection.style.display = savedPitchDisplay;
         console.error('Print error:', err);
         btn.innerHTML = origText;
         btn.disabled = false;
