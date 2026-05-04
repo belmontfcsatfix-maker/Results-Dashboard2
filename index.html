@@ -806,7 +806,7 @@ function renderMatchDay() {
       tr.onmouseover = () => tr.style.background = 'rgba(255,255,255,0.06)';
       tr.onmouseout  = () => tr.style.background = rowBg;
       tr.innerHTML = `
-        <td style="padding:10px 14px;font-size:0.75rem;color:var(--muted);white-space:nowrap;">${g.dateFmt}</td>
+        <td style="padding:10px 14px;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--muted);white-space:nowrap;">${g.dateFmt}</td>
         <td style="padding:10px 14px;white-space:nowrap;"><span style="font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:4px;background:${dc}22;color:${dc};border:1px solid ${dc}44;">${g.div}</span></td>
         ${teamCell(g.home, g.hConf)}
         ${teamCell(g.away, g.aConf)}
@@ -823,7 +823,7 @@ function renderMatchDay() {
   window._renderMatchDayTables();
 }
 
-// ── Render pitches tables (one per selected date, in same order as Games table = descending) ──
+// ── Render pitches tables (one per selected date, in same order as Games table) ──
 window._renderMatchDayTables = function() {
   const MD_GAMES = window._mdAllGames || [];
   const sel = window._mdSelectedDates;
@@ -1143,7 +1143,7 @@ window._renderMatchDayFiltered = function() {
         tr.onmouseover = () => tr.style.background = 'rgba(255,255,255,0.06)';
         tr.onmouseout  = () => tr.style.background = rowBg;
         tr.innerHTML = `
-          <td style="padding:10px 14px;font-size:0.75rem;color:var(--muted);white-space:nowrap;">${g.dateFmt}</td>
+          <td style="padding:10px 14px;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--muted);white-space:nowrap;">${g.dateFmt}</td>
           <td style="padding:10px 14px;white-space:nowrap;"><span style="font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:4px;background:${dc}22;color:${dc};border:1px solid ${dc}44;">${g.div}</span></td>
           ${teamCell(g.home, g.hConf)}
           ${teamCell(g.away, g.aConf)}
