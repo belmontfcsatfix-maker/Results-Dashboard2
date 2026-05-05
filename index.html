@@ -308,15 +308,6 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
     <div id="md-subtitle" style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:3px;">Belmont FC Home &amp; Away</div>
   </div>
 
-  <!-- ── LEGEND ── -->
-  <div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
-    <span style="font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);">Status:</span>
-    <span style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#8ba2c1">
-      <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#27ae60;flex-shrink:0;"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.5 4.5L3.5 6.5L7.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Confirmed</span>
-    <span style="display:flex;align-items:center;gap:6px;font-size:0.72rem;color:#8ba2c1">
-      <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#e67e22;flex-shrink:0;"><svg width="9" height="9" viewBox="0 0 9 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 2.5L6.5 6.5M6.5 2.5L2.5 6.5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></span>Pending</span>
-  </div>
-
   <!-- ── FILTERS BAR ── -->
   <div id="md-filters-bar" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;padding:12px 16px;background:var(--fbox);border:1px solid var(--fbox-b);border-radius:10px;">
 
@@ -355,8 +346,21 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 
   <!-- ── GAMES TABLE ── -->
   <div id="md-games-section">
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--yellow);">Games</div>
-    <div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:3px;margin-bottom:10px;">Belmont FC All Games</div>
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:0.06em;color:var(--yellow);">Games</div>
+        <div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-top:3px;">Belmont FC All Games</div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding-bottom:2px;">
+        <span style="font-size:0.58rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);">Division Status:</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:0.7rem;color:#8ba2c1;">
+          <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:rgba(46,204,113,0.35);border:1px solid rgba(46,204,113,0.6);flex-shrink:0;"></span>Confirmed
+        </span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:0.7rem;color:#8ba2c1;">
+          <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:rgba(230,126,34,0.35);border:1px solid rgba(230,126,34,0.6);flex-shrink:0;"></span>Pending
+        </span>
+      </div>
+    </div>
   <div style="border-radius:12px;border:1px solid var(--border);overflow-x:auto;background:var(--card);margin-bottom:36px;">
     <table id="md-games-table" style="width:100%;border-collapse:collapse;font-size:0.84rem;min-width:800px;">
       <thead>
@@ -779,7 +783,95 @@ function renderMatchDay() {
   const tbody = document.getElementById('md-games-tbody');
   tbody.innerHTML = '';
 
+  // ── Synthetic test games (shown when no real data is loaded) ──
+  const MD_TEST_GAMES = [
+    {
+      dateFmt:'10-May-25', dateKey:20250510, div:'U12. Div 1',    age:'U12',
+      home:'Belmont FC',   hConf:'Y',  away:'Leinster FC',  aConf:'Y',
+      ko:'10:00', ref:'J. Murphy', refConf:'Y', comments:'Test game A', pitch:'Pitch 1',
+      gameLen:60, belHome:true,
+    },
+    {
+      dateFmt:'10-May-25', dateKey:20250510, div:'U14G. Div 2',   age:'U14G',
+      home:'Shelbourne FC',hConf:'Y',  away:'Belmont FC',   aConf:'',
+      ko:'11:30', ref:'',           refConf:'',  comments:'Test game B', pitch:'Pitch 2',
+      gameLen:70, belHome:false,
+    },
+    {
+      dateFmt:'17-May-25', dateKey:20250517, div:'U16. Div 3',    age:'U16',
+      home:'Belmont FC',   hConf:'',   away:'St. Kevin\'s',  aConf:'',
+      ko:'09:30', ref:'P. Walsh',   refConf:'',  comments:'Test game C', pitch:'Pitch 3',
+      gameLen:80, belHome:true,
+    },
+  ];
+
   if (!MD_GAMES.length) {
+    // Use test games — re-run the full render with synthetic data injected
+    window._mdAllGames = MD_TEST_GAMES;
+    const testDates = [...new Map(
+      MD_TEST_GAMES.map(g => [g.dateFmt, { fmt: g.dateFmt, key: g.dateKey }])
+    ).values()];
+    window._mdAllDates = testDates;
+    window._mdAllAges  = [...new Set(MD_TEST_GAMES.map(g => g.age))];
+    if (!window._mdSelectedDates || window._mdSelectedDates.size === 0) {
+      window._mdSelectedDates = new Set(testDates.map(d => d.fmt));
+    }
+    if (!window._mdSelectedAges || window._mdSelectedAges.size === 0) {
+      window._mdSelectedAges = new Set();
+    }
+
+    // Rebuild date + age buttons for test data
+    const dateBtnsEl2 = document.getElementById('md-date-btns');
+    if (dateBtnsEl2) {
+      dateBtnsEl2.innerHTML = testDates.map(d => {
+        const id = `md-date-btn-${d.fmt.replace(/[^a-zA-Z0-9]/g,'_')}`;
+        const active = window._mdSelectedDates.has(d.fmt);
+        return `<button id="${id}" onclick="mdToggleDate('${d.fmt}')"
+          style="background:${active?'var(--yellow)':'var(--blue2)'};border:1px solid ${active?'var(--yellow)':'rgba(255,255,255,0.1)'};color:${active?'var(--blue)':'var(--muted)'};font-family:'DM Sans',sans-serif;font-size:0.74rem;padding:5px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.15s;font-weight:${active?'700':'normal'};"
+          onmouseover="this.style.borderColor='var(--yellow)';this.style.color=this.style.background==='rgb(253, 184, 19)'?'var(--blue)':'var(--text)'"
+          onmouseout="mdApplyDateFilter()">${d.fmt} <span style="font-size:0.58rem;opacity:0.7;">(test)</span></button>`;
+      }).join('');
+    }
+
+    const noticeRow = `<tr><td colspan="8" style="text-align:center;padding:8px 14px;background:rgba(253,184,19,0.07);border-bottom:1px solid rgba(253,184,19,0.15);font-size:0.68rem;color:var(--yellow);letter-spacing:0.06em;">
+      ⚠ No fixture data loaded — showing 3 synthetic test games for preview only
+    </td></tr>`;
+
+    let testDateGroupIdx = -1, testLastKey = null;
+    const testRows = MD_TEST_GAMES.filter(g => {
+      const sel2 = window._mdSelectedDates;
+      const selAge2 = window._mdSelectedAges;
+      if (sel2 && sel2.size > 0 && !sel2.has(g.dateFmt)) return false;
+      if (selAge2 && selAge2.size > 0 && !selAge2.has(g.age)) return false;
+      return true;
+    }).sort((a,b) => a.dateKey - b.dateKey);
+
+    tbody.innerHTML = noticeRow + testRows.map(g => {
+      if (g.dateKey !== testLastKey) { testDateGroupIdx++; testLastKey = g.dateKey; }
+      const isAlt = testDateGroupIdx % 2 === 1;
+      const rowBg = isAlt ? 'rgba(253,184,19,0.04)' : '';
+      const dc = mdDivColor(g.div);
+      const bothConf = g.hConf && g.hConf.toUpperCase() === 'Y' && g.aConf && g.aConf.toUpperCase() === 'Y';
+      const cBg  = bothConf ? 'rgba(46,204,113,0.18)' : 'rgba(230,126,34,0.18)';
+      const cBrd = bothConf ? 'rgba(46,204,113,0.35)' : 'rgba(230,126,34,0.35)';
+      return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s;${rowBg?`background:${rowBg}`:''};"
+        onmouseover="this.style.background='rgba(255,255,255,0.06)'"
+        onmouseout="this.style.background='${rowBg}'">
+        <td style="padding:10px 14px;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--muted);white-space:nowrap;">${g.dateFmt}</td>
+        <td style="padding:10px 14px;white-space:nowrap;background:${cBg};border-left:3px solid ${cBrd};"><span style="font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:4px;background:${dc}22;color:${dc};border:1px solid ${dc}44;">${g.div}</span></td>
+        ${teamCell(g.home, g.hConf)}
+        ${teamCell(g.away, g.aConf)}
+        <td style="padding:10px 14px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--yellow);">${g.ko}</td>
+        ${refCell(g.ref, g.refConf)}
+        <td style="padding:10px 14px;text-align:center;font-size:0.75rem;color:var(--muted);font-style:italic;">${g.comments||'—'}</td>
+        <td style="padding:10px 14px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#fdb813;background:rgba(253,184,19,0.07);">${g.pitch}</td>
+      </tr>`;
+    }).join('');
+
+    window._renderMatchDayTables();
+    return;
+  } else if (!MD_GAMES.length) {
+    // fallback (unreachable, kept for safety)
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No fixture data loaded yet — check your Google Sheet connection</td></tr>`;
   } else if (!sortedGames.length) {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No games for the selected date(s)</td></tr>`;
@@ -1898,111 +1990,4 @@ function renderInsights() {
         <td class="opp"><div class="team-name">${esc2(opp)}</div><div style="font-size:0.65rem;color:var(--muted)">${g.date} · ${g.division}</div></td>
         <td>${scoreChip(g.h_goals, g.a_goals, g.is_home)}</td>
         <td><span style="color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:1rem">+${g.margin}</span></td>
-      </tr>`;
-    }),
-    [null,null,null,null],true
-  ));
-
-  /* ── 2. Biggest Defeats ── */
-  const losses = pool.filter(g => {
-    const me = g.is_home ? g.h_goals : g.a_goals, them = g.is_home ? g.a_goals : g.h_goals;
-    return me < them;
-  }).map(g => {
-    const me = g.is_home ? g.h_goals : g.a_goals, them = g.is_home ? g.a_goals : g.h_goals;
-    return { ...g, margin: them - me };
-  }).sort((a,b) => b.margin - a.margin || (b.h_goals+b.a_goals) - (a.h_goals+a.a_goals)).slice(0,10);
-  cards.push(buildCard('💔 Biggest Defeats', 'By goal margin',
-    ['#','Opponent','Score','Margin'],
-    losses.map((g,i) => {
-      const opp = g.is_home ? g.away : g.home;
-      return `<tr>
-        <td>${rankIcon(i)}</td>
-        <td class="opp"><div class="team-name">${esc2(opp)}</div><div style="font-size:0.65rem;color:var(--muted)">${g.date} · ${g.division}</div></td>
-        <td>${scoreChip(g.h_goals, g.a_goals, g.is_home)}</td>
-        <td><span style="color:var(--red);font-family:'Bebas Neue',sans-serif;font-size:1rem">-${g.margin}</span></td>
-      </tr>`;
-    }),
-    [null,null,null,null],true
-  ));
-
-  /* ── 3. Highest Scoring Games ── */
-  const highScore = [...pool].sort((a,b) => (b.h_goals+b.a_goals) - (a.h_goals+a.a_goals)).slice(0,10);
-  cards.push(buildCard('🔥 Highest Scoring Games', 'Total goals in match',
-    ['#','Opponent','Score','Goals'],
-    highScore.map((g,i) => {
-      const opp = g.is_home ? g.away : g.home;
-      const tot = g.h_goals + g.a_goals;
-      return `<tr>
-        <td>${rankIcon(i)}</td>
-        <td class="opp"><div class="team-name">${esc2(opp)}</div><div style="font-size:0.65rem;color:var(--muted)">${g.date} · ${g.division}</div></td>
-        <td>${scoreChip(g.h_goals, g.a_goals, g.is_home)}</td>
-        <td><span style="color:var(--yellow);font-family:'Bebas Neue',sans-serif;font-size:1rem">${tot}</span></td>
-      </tr>`;
-    }),
-    [null,null,null,null],true
-  ));
-
-  /* ── 4. Most Goals Scored by Belmont ── */
-  const mostScored = [...pool].map(g => ({ ...g, bfc_goals: g.is_home ? g.h_goals : g.a_goals }))
-    .sort((a,b) => b.bfc_goals - a.bfc_goals).slice(0,10);
-  cards.push(buildCard('⚽ Most Goals Scored', 'Goals scored by Belmont FC',
-    ['#','Opponent','Score','Goals'],
-    mostScored.map((g,i) => {
-      const opp = g.is_home ? g.away : g.home;
-      return `<tr>
-        <td>${rankIcon(i)}</td>
-        <td class="opp"><div class="team-name">${esc2(opp)}</div><div style="font-size:0.65rem;color:var(--muted)">${g.date} · ${g.division}</div></td>
-        <td>${scoreChip(g.h_goals, g.a_goals, g.is_home)}</td>
-        <td><span style="color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:1rem">${g.bfc_goals}</span></td>
-      </tr>`;
-    }),
-    [null,null,null,null],true
-  ));
-
-  /* ── 5. Opponents Belmont Scored Most Against ── */
-  const oppScoreMap = {};
-  pool.forEach(g => {
-    const opp = g.is_home ? g.away : g.home;
-    const bfcG = g.is_home ? g.h_goals : g.a_goals;
-    if (!oppScoreMap[opp]) oppScoreMap[opp] = { goals:0, games:0 };
-    oppScoreMap[opp].goals += bfcG; oppScoreMap[opp].games++;
-  });
-  const topScoredVs = Object.entries(oppScoreMap).sort((a,b)=>b[1].goals-a[1].goals).slice(0,10);
-  const maxVsGoals = topScoredVs[0]?.[1].goals || 1;
-  cards.push(buildCard('🎯 Top Scoring vs Opponents', 'Belmont FC goals scored against each team',
-    ['#','Opponent','Goals','Games'],
-    topScoredVs.map(([opp,s],i) => `<tr>
-      <td>${rankIcon(i)}</td>
-      <td class="opp"><span class="team-name">${esc2(opp)}</span></td>
-      <td>${barFill(s.goals,maxVsGoals,'green')}<span style="color:var(--green)">${s.goals}</span></td>
-      <td style="color:var(--muted);font-size:0.78rem;white-space:nowrap">${s.games}</td>
-    </tr>`), null, true
-  ));
-
-  /* ── 6. Toughest Opponents ── */
-  const concededMap = {};
-  pool.forEach(g => {
-    const opp = g.is_home ? g.away : g.home;
-    const oppG = g.is_home ? g.a_goals : g.h_goals;
-    if (!concededMap[opp]) concededMap[opp] = { goals:0, games:0 };
-    concededMap[opp].goals += oppG; concededMap[opp].games++;
-  });
-  const topConceded = Object.entries(concededMap).sort((a,b)=>b[1].goals-a[1].goals).slice(0,10);
-  const maxConcG = topConceded[0]?.[1].goals || 1;
-  cards.push(buildCard('🛡 Toughest Opponents', 'Goals conceded by Belmont FC against each team',
-    ['#','Opponent','Conceded','Games'],
-    topConceded.map(([opp,s],i) => `<tr>
-      <td>${rankIcon(i)}</td>
-      <td class="opp"><span class="team-name">${esc2(opp)}</span></td>
-      <td>${barFill(s.goals,maxConcG,'red')}<span style="color:var(--red)">${s.goals}</span></td>
-      <td style="color:var(--muted);font-size:0.78rem;white-space:nowrap">${s.games}</td>
-    </tr>`), null, true
-  ));
-
-  /* ── 7. Performance by Age Group ── */
-  const ageMap = {};
-  pool.forEach(g => {
-    if (!ageMap[g.age]) ageMap[g.age] = { w:0, d:0, l:0, gf:0, ga:0 };
-    const me = g.is_home ? g.h_goals : g.a_goals, them = g.is_home ? g.a_goals : g.h_goals;
-    ageMap[g.age].gf += me; ageMap[g.age].ga += them;
-    if (me>them) ageMap[g.age].w++; else if (me===them) ageM
+      <
