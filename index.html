@@ -172,7 +172,6 @@ td.refcol { font-size:0.78rem; color:var(--muted); font-style:italic; }
 td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hidden; text-overflow:ellipsis; }
 
 @media (max-width:900px) {
-  .filters-grid { grid-template-columns:1fr 1fr 1fr; }
   .filters-grid { grid-template-columns:repeat(3,auto) auto auto; }
   .fbox-reset { flex-direction:row; justify-content:flex-start; }
 }
@@ -870,9 +869,6 @@ function renderMatchDay() {
 
     window._renderMatchDayTables();
     return;
-  } else if (!MD_GAMES.length) {
-    // fallback (unreachable, kept for safety)
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No fixture data loaded yet — check your Google Sheet connection</td></tr>`;
   } else if (!sortedGames.length) {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted);">No games for the selected date(s)</td></tr>`;
   } else {
@@ -1223,13 +1219,16 @@ window._renderMatchDayFiltered = function() {
         const isAlt = dateGroupIdx % 2 === 1;
         const rowBg = isAlt ? 'rgba(253,184,19,0.04)' : '';
         const dc = mdDivColor(g.div);
+        const bothConfirmed = g.hConf && g.hConf.toUpperCase() === 'Y' && g.aConf && g.aConf.toUpperCase() === 'Y';
+        const confCellBg = bothConfirmed ? 'rgba(46,204,113,0.18)' : 'rgba(230,126,34,0.18)';
+        const confCellBorder = bothConfirmed ? 'rgba(46,204,113,0.35)' : 'rgba(230,126,34,0.35)';
         const tr = document.createElement('tr');
         tr.style.cssText = `border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s;${rowBg?`background:${rowBg}`:''}`;
         tr.onmouseover = () => tr.style.background = 'rgba(255,255,255,0.06)';
         tr.onmouseout  = () => tr.style.background = rowBg;
         tr.innerHTML = `
           <td style="padding:10px 14px;font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--muted);white-space:nowrap;">${g.dateFmt}</td>
-          <td style="padding:10px 14px;white-space:nowrap;"><span style="font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:4px;background:${dc}22;color:${dc};border:1px solid ${dc}44;">${g.div}</span></td>
+          <td style="padding:10px 14px;white-space:nowrap;background:${confCellBg};border-left:3px solid ${confCellBorder};"><span style="font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:4px;background:${dc}22;color:${dc};border:1px solid ${dc}44;">${g.div}</span></td>
           ${teamCell(g.home, g.hConf)}
           ${teamCell(g.away, g.aConf)}
           <td style="padding:10px 14px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--yellow);">${g.ko}</td>
@@ -1315,7 +1314,7 @@ window._renderMatchDayFiltered = function() {
           <th style="text-align:center">Result</th>
           <th onclick="sortBy('away')" style="width:10%">Away ↕</th>
           <th onclick="sortBy('referee')">Referee ↕</th>
-          </tr>
+        </tr>
       </thead>
       <tbody id="tbody"></tbody>
     </table>
@@ -1776,7 +1775,7 @@ function selectOnlySt(val) {
 function render(games) {
   const tb = document.getElementById('tbody');
   if (!games.length) {
-    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted)">No matches match the selected filters</td></tr>';
+    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--muted)">No matches match the selected filters</td></tr>';
     return;
   }
   tb.innerHTML = games.map(g => {
@@ -1989,5 +1988,4 @@ function renderInsights() {
         <td>${rankIcon(i)}</td>
         <td class="opp"><div class="team-name">${esc2(opp)}</div><div style="font-size:0.65rem;color:var(--muted)">${g.date} · ${g.division}</div></td>
         <td>${scoreChip(g.h_goals, g.a_goals, g.is_home)}</td>
-        <td><span style="color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:1rem">+${g.margin}</span></td>
-      <
+        <td><span style="color:var(--green);font-family:'Bebas Neue',s
