@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Belmont FC – Season Dashboard 25/26</title>
+<title>Belmont FC – Saturday Fixtures Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -280,7 +280,7 @@ td.loccol { font-size:0.78rem; color:var(--muted); max-width:160px; overflow:hid
 <div class="header">
   <div>
     <div class="club-title">Belmont <span>FC</span></div>
-    <div class="sub">Herbert Park, Dublin 4 &nbsp;·&nbsp; Season 2025 / 26</div>
+    <div class="sub">Herbert Park, Dublin 4 &nbsp;·&nbsp; Saturday Fixtures Dashboard</div>
   </div>
   <div class="hdr-r">
     <div class="lbl">Files Loaded</div>
@@ -1503,8 +1503,8 @@ async function loadData() {
   // Show which files loaded
   const el = document.getElementById('filesLoaded');
   if (el) {
-    const s1 = rows1 ? `<span style="color:var(--green)">Sheet 1 ✓</span>` : `<span style="color:var(--red);opacity:0.6">Sheet 1 ✗</span>`;
-    const s2 = rows2 ? `<span style="color:var(--green)">Sheet 2 ✓</span>` : `<span style="color:var(--red);opacity:0.6">Sheet 2 ✗</span>`;
+    const s1 = rows1 ? `<span style="color:var(--green)">Load 2 - Sat ✓</span>` : `<span style="color:var(--red);opacity:0.6">Load 2 - Sat ✗</span>`;
+    const s2 = rows2 ? `<span style="color:var(--green)">Load 3 - Sun ✓</span>` : `<span style="color:var(--red);opacity:0.6">Load 3 - Sun ✗</span>`;
     el.innerHTML = `${s1} &nbsp; ${s2}`;
   }
 
