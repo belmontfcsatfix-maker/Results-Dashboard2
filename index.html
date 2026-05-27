@@ -573,6 +573,22 @@ function mdPrintFixtures(mode) {
       if (!isNaN(fs) && fs > 0) el.style.fontSize = (fs * 1.5) + 'px';
     });
 
+    // Add a header bar with badge top-right, in normal document flow so it isn't cropped
+    const badgeImg = document.querySelector('.header img');
+    const printHeader = document.createElement('div');
+    printHeader.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:2px solid rgba(253,184,19,0.4);margin-bottom:8px;';
+    const printTitle = document.createElement('div');
+    printTitle.style.cssText = 'font-family:\'Bebas Neue\',Impact,sans-serif;font-size:2rem;letter-spacing:0.06em;color:#fdb813;';
+    printTitle.textContent = 'Belmont FC \u00b7 Fixtures';
+    printHeader.appendChild(printTitle);
+    if (badgeImg) {
+      const badgeEl = document.createElement('img');
+      badgeEl.src = badgeImg.src;
+      badgeEl.style.cssText = 'height:100px;width:auto;filter:drop-shadow(0 2px 10px rgba(0,0,0,0.5));flex-shrink:0;';
+      printHeader.appendChild(badgeEl);
+    }
+    clone.insertBefore(printHeader, clone.firstChild);
+
     document.body.appendChild(clone);
 
     restoreHidden = () => {
@@ -1951,6 +1967,23 @@ function resultsPrint() {
       'width:max-content;max-width:none;overflow:visible;'
     ].join('');
 
+    // Add a header bar with title left, badge right — inserted before font boost so sizing is consistent
+    const badgeImgR = document.querySelector('.header img');
+    const rBanner = document.createElement('div');
+    rBanner.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:2px solid rgba(253,184,19,0.4);margin-bottom:14px;';
+    const rTitle = document.createElement('div');
+    const rcEl = document.getElementById('rcount');
+    rTitle.style.cssText = 'font-family:\'Bebas Neue\',Impact,sans-serif;font-size:2rem;letter-spacing:0.08em;color:#fdb813;';
+    rTitle.textContent = 'Belmont FC \u00b7 Results' + (rcEl ? '  \u2014  ' + rcEl.textContent.replace(/\s+/g,' ').trim() : '');
+    rBanner.appendChild(rTitle);
+    if (badgeImgR) {
+      const badgeElR = document.createElement('img');
+      badgeElR.src = badgeImgR.src;
+      badgeElR.style.cssText = 'height:100px;width:auto;filter:drop-shadow(0 2px 10px rgba(0,0,0,0.5));flex-shrink:0;';
+      rBanner.appendChild(badgeElR);
+    }
+    clone.insertBefore(rBanner, clone.firstChild);
+
     // Expand any scroll containers so all rows are visible
     clone.querySelectorAll('*').forEach(el => {
       const cs = window.getComputedStyle(el);
@@ -1964,17 +1997,11 @@ function resultsPrint() {
         el.style.height    = 'auto';
         el.style.maxHeight = 'none';
       }
-      // Boost font sizes for print readability
+      // Boost font sizes for print readability (skip the banner elements we just added)
+      if (el === rBanner || rBanner.contains(el)) return;
       const fs = parseFloat(cs.fontSize);
       if (!isNaN(fs) && fs > 0) el.style.fontSize = (fs * 1.5) + 'px';
     });
-
-    // Add a header banner to the clone
-    const banner = document.createElement('div');
-    banner.style.cssText = 'font-family:\'Bebas Neue\',Impact,sans-serif;font-size:1.5rem;letter-spacing:0.08em;color:#fdb813;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(253,184,19,0.25);';
-    const rcEl = document.getElementById('rcount');
-    banner.textContent = 'Belmont FC · Results' + (rcEl ? '  —  ' + rcEl.textContent.replace(/\s+/g,' ').trim() : '');
-    clone.insertBefore(banner, clone.firstChild);
 
     document.body.appendChild(clone);
 
