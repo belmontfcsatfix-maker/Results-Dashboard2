@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Belmont FC – Saturday Fixtures Dashboard</title>
@@ -165,6 +164,7 @@ td.divcol { font-weight:700; color:var(--yellow); font-size:0.82rem; }
 .badge-nr     { background:rgba(243,156,18,0.15);   color:var(--amber); border:1px solid rgba(243,156,18,0.3); }
 .badge-cup    { background:rgba(253,184,19,0.13);   color:var(--yellow); border:1px solid rgba(253,184,19,0.3); }
 .badge-league { background:rgba(255,255,255,0.05);  color:var(--muted); border:1px solid rgba(255,255,255,0.1); }
+.badge-other  { background:rgba(116,185,255,0.1);   color:#74b9ff;      border:1px solid rgba(116,185,255,0.3); }
 .reason-tag   { font-size:0.62rem; padding:2px 7px; border-radius:3px; font-weight:600; }
 .reason-weather    { background:rgba(52,152,219,0.2);  color:#74b9ff; }
 .reason-opposition { background:rgba(231,76,60,0.2);   color:#ff7675; }
@@ -1347,6 +1347,7 @@ window._renderMatchDayFiltered = function() {
         <button class="btn active" data-key="tp" data-val="all"    onclick="toggleBtn(this)">All</button>
         <button class="btn"        data-key="tp" data-val="League"  onclick="toggleBtn(this)">League</button>
         <button class="btn"        data-key="tp" data-val="Cup"     onclick="toggleBtn(this)">Cup</button>
+        <button class="btn"        data-key="tp" data-val="Other"   onclick="toggleBtn(this)">Other</button>
       </div>
     </div>
 
@@ -1918,7 +1919,9 @@ function render(games) {
     }
     const tb2 = g.tournament==='Cup'
       ? '<span class="badge badge-cup">Cup</span>'
-      : '<span class="badge badge-league">Lge</span>';
+      : g.tournament==='League'
+        ? '<span class="badge badge-league">Lge</span>'
+        : '<span class="badge badge-other">' + esc(g.tournament||'Other') + '</span>';
     return `<tr>
       <td class="dcol">${g.date}</td>
       <td class="divcol" style="color:var(--muted);font-weight:400;font-size:0.8rem">${g.group ? esc(g.group) : '<span style="opacity:0.3">—</span>'}</td>
